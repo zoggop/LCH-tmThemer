@@ -66,11 +66,6 @@ fontStyles = {
 
 settingsKeys = {'background', 'foreground', 'caret', 'invisibles', 'lineHighlight', 'selection', 'findHighlightForeGround', 'findHighlight', 'selectionBorder', 'guide', 'activeGuide', 'stackGuide'}
 
-if len(sys.argv) > 1:
-	tmThemeFile = sys.argv[1]
-else:
-	tmThemeFile = 'generated.tmTheme'
-
 def angleDist(a, b):
 	return abs(((b - a) + 180) % 360 - 180)
 
@@ -257,6 +252,12 @@ def keyStringPair(parent, key, string):
 	s = ET.SubElement(parent, 'string')
 	s.text = string
 
+tmThemeFile = 'generated.tmTheme'
+if len(sys.argv) > 1:
+	exec(open(sys.argv[1]).read())
+if len(sys.argv) > 2:
+	tmThemeFile = sys.argv[2]
+
 # generate palettes from those that are parameters for the generator
 for paletteName in palettes.keys():
 	paletteDef = palettes.get(paletteName)
@@ -293,4 +294,4 @@ for key in scopes.keys():
 	if fontStyle:
 		keyStringPair(scoD2, 'fontStyle', fontStyle)
 
-tree.write(sys.argv[1], pretty_print=True)
+tree.write(tmThemeFile, pretty_print=True)
