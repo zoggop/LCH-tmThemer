@@ -29,7 +29,7 @@ palettes = {
 		],
 	},
 	'background' : {
-		'palette' : [95, 13, None, 10, 0],
+		'palette' : [95, 13, 10, 0],
 		'groups' : [
 			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground'},
 			['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
@@ -37,7 +37,7 @@ palettes = {
 		]
 	},
 	'foreground' : {
-		'palette' : [49, 95, None, 11, 6],
+		'palette' : [49, 95, 11, 6],
 		'groups' : [
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background'},
 			{'variable.parameter':'', 'invalid.deprecated':'background'},
@@ -56,6 +56,7 @@ fontStyles = {
 	'storage.type' : 'italic',
 	'entity.other.inherited-class' : 'italic underline',
 	'entity.name.class' : 'underline',
+	'variable.function' : 'bold',
 	'invalid' : 'bold',
 	'invalid.deprecated' : 'bold',
 }
@@ -104,7 +105,10 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 	iterations = 0
 	colors = []
 	estimateStepComplete = wantedNumber == None
-	while currentNumber != wantedNumber and iterations < 100:
+	done = False
+	foundEqual = False
+	foundLimit = False
+	while not done and iterations < 100:
 		estimate = 0
 		currentNumber = 0
 		colors = []
@@ -119,7 +123,7 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 			b = cont[1]
 			length = angleDist(a, highH)
 			divisions = floor(length / minHueDist)
-			print(a, b, highH, length, divisions)
+			# print(a, b, highH, length, divisions)
 			if estimateStepComplete:
 				if divisions == 0:
 					hue = int(a + (length / 2)) % 360
@@ -134,25 +138,33 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 			else:
 				estimate += 1 + divisions
 		if wantedNumber == None:
-					return colors
+			return colors
 		if estimateStepComplete:
+			if currentNumber == wantedNumber:
+				foundEqual = True
+				if foundLimit:
+					print(iterations, "final:", minHueDist)
+					return colors
+				else:
+					minHueDist += 1
 			if currentNumber > wantedNumber:
 				minHueDist += 1
 			elif currentNumber < wantedNumber:
 				minHueDist -= 1
+				if foundEqual:
+					foundLimit = True
 		else:
 			if estimate == wantedNumber:
-				print("got estimate", iterations)
+				print(iterations, "estimate:", minHueDist)
 				estimateStepComplete = True
 			elif estimate > wantedNumber:
 				minHueDist += 1
-			elif estmate < wantedNumber:
+			elif estimate < wantedNumber:
 				minHueDist -= 1
 		iterations += 1
-	return colors
 			
 
-def generatePalette(lightness, chroma, minHueDist, t, lightnessT):
+def generatePalette(lightness, chroma, t, lightnessT, minHueDist):
 	possibles = {}
 	edges = []
 	continuities = []
@@ -192,7 +204,7 @@ def generatePalette(lightness, chroma, minHueDist, t, lightnessT):
 	if len(edges) == 0:
 		continuities = [[0, 360]]
 	if type(minHueDist) == list:
-		colors = findMinHueDist(continuities, minHueDist[0], 5, possibles)
+		colors = findMinHueDist(continuities, minHueDist[0], 50, possibles)
 	else:
 		colors = findMinHueDist(continuities, None, minHueDist, possibles)
 	for ci in range(len(colors)):
@@ -207,6 +219,7 @@ def assignColors(palettes):
 	settings = {}
 	for paletteName in palettes.keys():
 		print('')
+		print(paletteName)
 		paletteDef = palettes.get(paletteName)
 		paletteGroups = paletteDef.get('groups')
 		palette = paletteDef.get('palette')
@@ -248,8 +261,7 @@ for paletteName in palettes.keys():
 	paletteDef = palettes.get(paletteName)
 	palette = paletteDef.get('palette')
 	if type(palette[0]) == int:
-		if palette[2] == None:
-			palette[2] = [len(paletteDef['groups'])]
+		palette.append([len(paletteDef['groups'])])
 		palettes[paletteName]['palette'] = generatePalette(*palette)
 
 scopes, settings = assignColors(palettes)
