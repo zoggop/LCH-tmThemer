@@ -6,9 +6,10 @@ from math import floor, ceil
 
 ### BEGIN CONFIGURATION ###
 
-# the top-level dictionary index defines which palette to use, not whether to set the background or foreground
-# whether to set background or foreground is determined by the value of the group dict. if the value is an empty string, the palette name will be used, or in the case of settings keys, not needed
-# lists of names can include both scopes and names of settings keys
+# the top-level dictionary key is a name that doesn't necessarily define whether to set background or foreground
+# whether to set background or foreground is determined by values within the group dict. if a value is an empty string, or if the group is a list, the palette name will be used, or in the case of settings keys, not needed
+# group lists or dict keys can include both scopes and names of settings keys
+# palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 palettes = {
 	'comment' : {
 		'palette' : ['#997A66'],
@@ -261,7 +262,8 @@ for paletteName in palettes.keys():
 	paletteDef = palettes.get(paletteName)
 	palette = paletteDef.get('palette')
 	if type(palette[0]) == int:
-		palette.append([len(paletteDef['groups'])])
+		if len(palette) == 4:
+			palette.append([len(paletteDef['groups'])])
 		palettes[paletteName]['palette'] = generatePalette(*palette)
 
 scopes, settings = assignColors(palettes)
