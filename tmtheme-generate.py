@@ -29,7 +29,7 @@ palettes = {
 		],
 	},
 	'background' : {
-		'palette' : [95, 13, 70, 10, 0],
+		'palette' : [95, 13, None, 10, 0],
 		'groups' : [
 			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground'},
 			['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
@@ -37,7 +37,7 @@ palettes = {
 		]
 	},
 	'foreground' : {
-		'palette' : [49, 95, 37, 11, 6],
+		'palette' : [49, 95, None, 11, 6],
 		'groups' : [
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background'},
 			{'variable.parameter':'', 'invalid.deprecated':'background'},
@@ -248,6 +248,8 @@ for paletteName in palettes.keys():
 	paletteDef = palettes.get(paletteName)
 	palette = paletteDef.get('palette')
 	if type(palette[0]) == int:
+		if palette[2] == None:
+			palette[2] = [len(paletteDef['groups'])]
 		palettes[paletteName]['palette'] = generatePalette(*palette)
 
 scopes, settings = assignColors(palettes)

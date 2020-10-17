@@ -1,0 +1,14 @@
+<plist version="1.0">
+	<dict>
+		<key>name</key>
+		<string>Generated tmTheme</string>
+		<key>settings</key>
+		<array></array>
+		<key>uuid</key>
+		<string>8d23da80-ba4b-418e-8f93-80dcd8cf3672</string>
+		<key>colorSpaceName</key>
+		<string>sRGB</string>
+		<key>semanticClass</key>
+		<string>theme.dark.generated_tmtheme</string>
+	</dict>
+</plist>
