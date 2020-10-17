@@ -73,7 +73,7 @@ def tolerance(a, b, t):
 	return abs(b - a) <= t
 
 def LCHtolerance(a, b, t):
-	return tolerance(a.lch_l, b.lch_l, t) and tolerance(a.lch_c, b.lch_c, t) and tolerance(a.lch_h, b.lch_h, t)
+	return tolerance(a.lch_l, b.lch_l, t) and tolerance(a.lch_c, b.lch_c, t) and (a.lch_c == 0 or tolerance(a.lch_h, b.lch_h, t))
 
 def outOfGamut(rgb):
 	return rgb.clamped_rgb_r != rgb.rgb_r or rgb.clamped_rgb_g != rgb.rgb_g or rgb.clamped_rgb_b != rgb.rgb_b

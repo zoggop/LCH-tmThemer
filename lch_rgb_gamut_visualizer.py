@@ -9,7 +9,7 @@ def tolerance(a, b, t):
 	return abs(b - a) <= t
 
 def LCHtolerance(a, b, t):
-	return tolerance(a.lch_l, b.lch_l, t) and tolerance(a.lch_c, b.lch_c, t) and tolerance(a.lch_h, b.lch_h, t)
+	return tolerance(a.lch_l, b.lch_l, t) and tolerance(a.lch_c, b.lch_c, t) and (a.lch_c == 0 or tolerance(a.lch_h, b.lch_h, t))
 
 def outOfGamut(rgb):
 	return rgb.clamped_rgb_r != rgb.rgb_r or rgb.clamped_rgb_g != rgb.rgb_g or rgb.clamped_rgb_b != rgb.rgb_b
@@ -40,29 +40,33 @@ def findRGBGamut(lightness, chroma, hue, t, lightnessT):
 	ax = ''
 	extent = []
 	dupes = {}
-	rgbMap = np.zeros([101, 361, 3], dtype=np.uint8)
-	if lightness and chroma:
+	rgbMap = []
+	if lightness != None and chroma != None:
 		extent = [0, 360, 0, 1]
+		rgbMap = np.zeros([101, 361, 3], dtype=np.uint8)
 		for hue in range(361):
 			rgb, rgbColor = gamutPixel(lightness, chroma, hue, t, lightnessT)
 			for y in range(101):
 				rgbMap[y, hue] = rgb
-	elif lightness and hue:
+	elif lightness != None and hue != None:
 		extent = [0, 100, 0, 1]
+		rgbMap = np.zeros([101, 101, 3], dtype=np.uint8)
 		for chroma in range(101):
 			rgb, rgbColor = gamutPixel(lightness, chroma, hue, t, lightnessT)
 			for y in range(101):
 				rgbMap[y, chroma] = rgb
-	elif chroma and hue:
+	elif chroma != None and hue != None:
 		extent = [0, 100, 0, 1]
+		rgbMap = np.zeros([101, 101, 3], dtype=np.uint8)
 		for lightness in range(101):
 			rgb, rgbColor = gamutPixel(lightness, chroma, hue, t, lightnessT)
 			for y in range(101):
 				rgbMap[y, lightness] = rgb
-	elif lightness:
+	elif lightness != None:
 		# fig = plt.figure(figsize=(8, 8))
 		# ax = plt.subplot(1, 1, 1, projection='polar')
 		extent = [0, 360, 0, 100]
+		rgbMap = np.zeros([101, 361, 3], dtype=np.uint8)
 		for chroma in range(101):
 			for hue in range(361):
 				rgb, rgbColor = gamutPixel(lightness, chroma, hue, t, lightnessT)
@@ -80,18 +84,20 @@ def findRGBGamut(lightness, chroma, hue, t, lightnessT):
 				# for ch in chs:
 					# rgbMap[ch[0], ch[1]] = [255, 255, 255]
 
-	elif chroma:
+	elif chroma != None:
 		# fig = plt.figure(figsize=(8, 8))
 		# ax = plt.subplot(1, 1, 1, projection='polar')
 		extent = [0, 360, 0, 100]
+		rgbMap = np.zeros([101, 361, 3], dtype=np.uint8)
 		for lightness in range(101):
 			for hue in range(361):
 				rgb, rgbColor = gamutPixel(lightness, chroma, hue, t, lightnessT)
 				rgbMap[lightness, hue] = rgb
 				# if rgbColor:
 					# plt.polar(hue / 57.29578, lightness, color=rgbColor.get_rgb_hex(), marker='s', markersize=4)
-	elif hue:
+	elif hue != None:
 		extent = [0, 100, 0, 100]
+		rgbMap = np.zeros([101, 101, 3], dtype=np.uint8)
 		for lightness in range(101):
 			for chroma in range(101):
 				rgb, rgbColor = gamutPixel(lightness, chroma, hue, t, lightnessT)
