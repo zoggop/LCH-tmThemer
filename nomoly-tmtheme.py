@@ -12,19 +12,20 @@ palettes = {
 		],
 	},
 	'grayscale' : {
-		'palette' : ['#ffffff', '#f1f1f1', '#d4d4d4', '#b9b9b9', '#777777', '#616161', '#303030'],
+		# 'palette' : ['#ffffff', '#f1f1f1', '#d4d4d4', '#b9b9b9', '#777777', '#616161', '#303030'],
+		'palette' : {'chroma':0, 'hue':0, 'tolerance':1000, 'xMin':20, 'gamutCheck':False},
 		'groups' : [
-			['background', 'findHighlightForeGround', 'selectionBorder'],
-			['selection', 'lineHighlight'],
-			['stackGuide', 'invisibles'],
-			['guide'],
-			['activeGuide'],
+			['caret'],
 			['foreground'],
-			['caret']
+			['activeGuide'],
+			['guide'],
+			['stackGuide', 'invisibles'],
+			['selection', 'lineHighlight'],
+			['background', 'findHighlightForeGround', 'selectionBorder'],
 		],
 	},
 	'background' : {
-		'palette' : [95, 13, 10, 0],
+		'palette' : {'lightness':95, 'chroma':13, 'tolerance':10, 'lightnessWidth':0},
 		'groups' : [
 			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground'},
 			['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
@@ -32,7 +33,7 @@ palettes = {
 		]
 	},
 	'foreground' : {
-		'palette' : [49, 95, 11, 6],
+		'palette' : {'lightness':49, 'chroma':95, 'tolerance':11, 'lightnessWidth':6},
 		'groups' : [
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background'},
 			{'variable.parameter':'', 'invalid.deprecated':'background'},

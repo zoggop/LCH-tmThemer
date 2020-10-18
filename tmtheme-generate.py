@@ -4,66 +4,6 @@ from lxml import etree as ET
 import sys
 from math import floor, ceil
 
-### BEGIN CONFIGURATION ###
-
-# the top-level dictionary key is a name that doesn't necessarily define whether to set background or foreground
-# whether to set background or foreground is determined by values within the group dict. if a value is an empty string, or if the group is a list, the palette name will be used, or in the case of settings keys, not needed
-# group lists or dict keys can include both scopes and names of settings keys
-# palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
-palettes = {
-	'comment' : {
-		'palette' : ['#997A66'],
-		'groups' : [
-			{'comment':'foreground', 'findHighlight':''}
-		],
-	},
-	'grayscale' : {
-		'palette' : ['#ffffff', '#f1f1f1', '#d4d4d4', '#b9b9b9', '#777777', '#616161', '#303030'],
-		'groups' : [
-			['background', 'findHighlightForeGround', 'selectionBorder'],
-			['selection', 'lineHighlight'],
-			['stackGuide', 'invisibles'],
-			['guide'],
-			['activeGuide'],
-			['foreground'],
-			['caret']
-		],
-	},
-	'background' : {
-		'palette' : [95, 13, 10, 0],
-		'groups' : [
-			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground'},
-			['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
-			['meta.arrayindex, meta.item-access.arguments'],
-		]
-	},
-	'foreground' : {
-		'palette' : [49, 95, 11, 6],
-		'groups' : [
-			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background'},
-			{'variable.parameter':'', 'invalid.deprecated':'background'},
-			['meta.function', 'variable.function', 'entity.other.attribute-name'], # 'meta.functioncall, meta.function-call'
-			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type'],
-			{'constant':''},
-			# ['variable, support.variable, meta.qualified-name, support.other.variable'],
-		]
-	}
-}
-
-fontStyles = {
-	'variable.parameter' : 'italic',
-	'support.type' : 'italic',
-	'support.class' : 'italic',
-	'storage.type' : 'italic',
-	'entity.other.inherited-class' : 'italic underline',
-	'entity.name.class' : 'underline',
-	'variable.function' : 'bold',
-	'invalid' : 'bold',
-	'invalid.deprecated' : 'bold',
-}
-
-### END CONFIGURATION ###
-
 settingsKeys = {'background', 'foreground', 'caret', 'invisibles', 'lineHighlight', 'selection', 'findHighlightForeGround', 'findHighlight', 'selectionBorder', 'guide', 'activeGuide', 'stackGuide'}
 
 def angleDist(a, b):
@@ -76,7 +16,8 @@ def LCHtolerance(a, b, t):
 	return tolerance(a.lch_l, b.lch_l, t) and tolerance(a.lch_c, b.lch_c, t) and (a.lch_c == 0 or tolerance(a.lch_h, b.lch_h, t))
 
 def outOfGamut(rgb):
-	return rgb.clamped_rgb_r != rgb.rgb_r or rgb.clamped_rgb_g != rgb.rgb_g or rgb.clamped_rgb_b != rgb.rgb_b
+	return rgb.rgb_r < 0 or rgb.rgb_r > 1 or rgb.rgb_g < 0 or rgb.rgb_g > 1 or rgb.rgb_b < 0 or rgb.rgb_b > 1
+	# return rgb.clamped_rgb_r != rgb.rgb_r or rgb.clamped_rgb_g != rgb.rgb_g or rgb.clamped_rgb_b != rgb.rgb_b
 
 def findGoodLightness(lightness, chroma, hue, t, lightnessT):
 	found = False
@@ -158,9 +99,152 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 			elif estimate < wantedNumber:
 				minHueDist -= 1
 		iterations += 1
-			
 
-def generatePalette(lightness, chroma, t, lightnessT, minHueDist):
+def findMinDist(continuities, wantedNumber, minDist, possibles):
+	currentNumber = 0
+	iterations = 0
+	colors = []
+	estimateStepComplete = wantedNumber == None
+	done = False
+	foundEqual = False
+	foundLimit = False
+	while not done and iterations < 100:
+		estimate = 0
+		currentNumber = 0
+		colors = []
+		for ci in range(len(continuities)):
+			cont = continuities[ci]
+			highX = cont[1]
+			if len(continuities) > 1 and ci != len(continuities) - 1:
+				nextCont = continuities[ci + 1]
+				highX = min(cont[1], nextCont[0] - minDist)
+			a = cont[0]
+			b = cont[1]
+			length = highX - a
+			if length > 0:
+				divisions = floor(length / minDist)
+				# print(a, b, highH, length, divisions)
+				if estimateStepComplete:
+					if divisions == 0:
+						x = int(a + (length / 2))
+						currentNumber += 1
+						colors.append(possibles[x])
+					else:
+						step = int(length / divisions)
+						xs = []
+						for x in range(a, highX, step):
+							xs.append(x)
+						for xi in range(0, len(xs)):
+							x = xs[xi]
+							if xi == len(xs) - 1:
+								x = highX
+							currentNumber += 1
+							colors.append(possibles[x])
+				else:
+					estimate += 1 + divisions
+		if wantedNumber == None:
+			return colors
+		if estimateStepComplete:
+			if currentNumber == wantedNumber:
+				foundEqual = True
+				if foundLimit:
+					print(iterations, "final:", minDist)
+					return colors
+				else:
+					minDist += 1
+			if currentNumber > wantedNumber:
+				minDist += 1
+			elif currentNumber < wantedNumber:
+				minDist -= 1
+				if foundEqual:
+					foundLimit = True
+		else:
+			if estimate == wantedNumber:
+				print(iterations, "estimate:", minDist)
+				estimateStepComplete = True
+			elif estimate > wantedNumber:
+				minDist += 1
+			elif estimate < wantedNumber:
+				minDist -= 1
+		iterations += 1
+
+def generateLinearPalette(**args):
+	lightness = args.get('lightness')
+	chroma = args.get('chroma')
+	hue = args.get('hue')
+	t = args.get('tolerance')
+	wantedNumber = args.get('wantedNumber')
+	minDist = args.get('minDist')
+	gamutCheck = args.get('gamutCheck')
+	xMin = 0
+	xMax = 100
+	if args.get('xMin') != None:
+		xMin = args.get('xMin')
+	if args.get('xMax') != None:
+		xMax = args.get('xMax')
+	if hue == None or (lightness == None and chroma == None):
+		return
+	xVar = 'lch_l'
+	if lightness != None:
+		xVar = 'lch_c'
+	possibles = {}
+	edges = []
+	continuities = []
+	colors = []
+	prevPossible = True
+	for x in range(xMin, xMax+1):
+		if xVar == 'lch_l':
+			lightness = x
+		elif xVar == 'lch_c':
+			chroma = x
+		c = LCHabColor(lightness, chroma, hue)
+		rgb = convert_color(c, sRGBColor)
+		if not outOfGamut(rgb) or gamutCheck == False:
+			cc = convert_color(sRGBColor(rgb.clamped_rgb_r, rgb.clamped_rgb_g, rgb.clamped_rgb_b), LCHabColor)
+			if LCHtolerance(c, cc, t):
+				possibles[x] = c
+				if prevPossible == False:
+					edges.append([c, 1])
+				prevPossible = c
+			else:
+				if prevPossible != False and x != xMin:
+					edges.append([prevPossible, 0])
+					prevPossible = False
+	for i in range(len(edges)):
+		e = edges[i]
+		nextE = None
+		if i < len(edges)-2:
+			nextE = edges[e+1]
+		if e[1] == 1 and nextE and nextE[1] == 0:
+				continuities.append([int(getattr(e[0], xVar)), int(getattr(nextE[0], xVar))])
+		elif i == 0 and e[1] == 0:
+			# if the continuity happens to begin at minimum x
+			continuities.append([xMin, int(getattr(e[0], xVar))])
+		elif i == len(edges) - 1 and e[1] == 1:
+			# if the continuity happens to end at maximum x
+			continuities.append([int(getattr(e[0], xVar)), xMax])
+	if len(edges) == 0:
+		continuities = [[xMin, xMax]]
+	if wantedNumber != None:
+		colors = findMinDist(continuities, wantedNumber, 50, possibles)
+	elif minDist != None:
+		colors = findMinDist(continuities, None, minDist, possibles)
+	for ci in range(len(colors)):
+		c = colors[ci]
+		hx = convert_color(c, sRGBColor).get_rgb_hex()
+		print(int(c.lch_l), int(c.lch_c), int(c.lch_h), "\t", hx)
+		colors[ci] = hx
+	return colors
+
+def generatePalette(**args):
+	lightness = args.get('lightness')
+	chroma = args.get('chroma')
+	hue = args.get('hue')
+	t = args.get('tolerance')
+	wantedNumber = args.get('wantedNumber')
+	minHueDist = args.get('minHueDist')
+	gamutCheck = args.get('gamutCheck')
+	lightnessT = args.get('lightnessWidth')
 	possibles = {}
 	edges = []
 	continuities = []
@@ -199,8 +283,8 @@ def generatePalette(lightness, chroma, t, lightnessT, minHueDist):
 			continuities.append([int(e[0].lch_h), 360])
 	if len(edges) == 0:
 		continuities = [[0, 360]]
-	if type(minHueDist) == list:
-		colors = findMinHueDist(continuities, minHueDist[0], 50, possibles)
+	if minHueDist == None:
+		colors = findMinHueDist(continuities, wantedNumber, 50, possibles)
 	else:
 		colors = findMinHueDist(continuities, None, minHueDist, possibles)
 	for ci in range(len(colors)):
@@ -262,10 +346,13 @@ if len(sys.argv) > 2:
 for paletteName in palettes.keys():
 	paletteDef = palettes.get(paletteName)
 	palette = paletteDef.get('palette')
-	if type(palette[0]) == int:
-		if len(palette) == 4:
-			palette.append([len(paletteDef['groups'])])
-		palettes[paletteName]['palette'] = generatePalette(*palette)
+	if type(palette) == dict:
+		if palette.get('minHueDist') == None and palette.get('minDist') == None:
+			palette['wantedNumber'] = len(paletteDef['groups'])
+		if palette.get('hue') == None:
+			palettes[paletteName]['palette'] = generatePalette(**palette)
+		else:
+			palettes[paletteName]['palette'] = generateLinearPalette(**palette)
 
 scopes, settings = assignColors(palettes)
 
