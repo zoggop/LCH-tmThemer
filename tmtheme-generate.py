@@ -45,6 +45,8 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 	done = False
 	foundEqual = False
 	foundLimit = False
+	lastNumber = 500
+	lastEstimate = 500
 	while not done and iterations < 100:
 		estimate = 0
 		currentNumber = 0
@@ -55,7 +57,8 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 			if len(continuities) > 1:
 				nextCI = (ci + 1) % len(continuities)
 				nextCont = continuities[nextCI]
-				highH = min(cont[1], nextCont[0] - minHueDist) % 360
+				# print(nextCont[0], minHueDist, (nextCont[0] - minHueDist) % 360)
+				highH = max(cont[0], min(cont[1], (nextCont[0] - minHueDist) % 360))
 			a = cont[0]
 			b = cont[1]
 			length = angleDist(a, highH)
@@ -68,6 +71,7 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 					colors.append(possibles[hue])
 				else:
 					step = int(length / divisions)
+					# print(a, b, highH, length, divisions)
 					for n in range(0, length+1, step):
 						hue = (a + n) % 360
 						currentNumber += 1
@@ -77,9 +81,11 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 		if wantedNumber == None:
 			return colors
 		if estimateStepComplete:
-			if currentNumber == wantedNumber:
-				foundEqual = True
-				if foundLimit:
+			if currentNumber == wantedNumber or (currentNumber > wantedNumber and lastNumber < wantedNumber):
+				if not foundEqual:
+					foundEqual = iterations
+				print(foundEqual, iterations)
+				if foundLimit or foundEqual == iterations - 5:
 					print(iterations, "final:", minHueDist)
 					return colors
 				else:
@@ -90,14 +96,17 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 				minHueDist -= 1
 				if foundEqual:
 					foundLimit = True
+			lastNumber = currentNumber
 		else:
-			if estimate == wantedNumber:
-				print(iterations, "estimate:", minHueDist)
+			if estimate == wantedNumber or (estimate > wantedNumber and lastEstimate < wantedNumber):
+				print(iterations, "estimate:", minHueDist, estimate, wantedNumber)
 				estimateStepComplete = True
 			elif estimate > wantedNumber:
 				minHueDist += 1
 			elif estimate < wantedNumber:
 				minHueDist -= 1
+			lastEstimate = estimate
+		print(iterations, minHueDist, currentNumber)
 		iterations += 1
 
 def findMinDist(continuities, wantedNumber, minDist, possibles):
@@ -287,6 +296,7 @@ def generatePalette(**args):
 		colors = findMinHueDist(continuities, wantedNumber, 50, possibles)
 	else:
 		colors = findMinHueDist(continuities, None, minHueDist, possibles)
+	print(continuities, minHueDist, wantedNumber, len(possibles))
 	for ci in range(len(colors)):
 		c = colors[ci]
 		hx = convert_color(c, sRGBColor).get_rgb_hex()

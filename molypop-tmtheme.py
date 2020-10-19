@@ -6,37 +6,39 @@
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 palettes = {
 	'comment' : {
-		'palette' : ['#997A66'],
+		'palette' : ['#aa8a75'],
 		'groups' : [
-			{'comment':'foreground', 'findHighlight':''}
+			{'comment':'foreground', 'findHighlight':''},
 		],
 	},
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'tolerance':1000, 'xMin':30, 'gamutCheck':False},
+		'palette' : {'chroma':0, 'hue':0, 'tolerance':1000, 'xMax':75, 'gamutCheck':False},
 		'groups' : [
-			['caret'],
-			['foreground'],
-			['activeGuide'],
-			['guide'],
-			['stackGuide', 'invisibles'],
-			['selection', 'lineHighlight'],
 			['background', 'findHighlightForeGround', 'selectionBorder'],
+			['selection', 'lineHighlight'],
+			['stackGuide', 'invisibles'],
+			['guide'],
+			['activeGuide'],
+			['foreground'],
+			['caret'],
 		],
 	},
 	'background' : {
-		'palette' : {'lightness':95, 'chroma':13, 'tolerance':10, 'lightnessWidth':0},
+		'palette' : {'lightness':10, 'chroma':30, 'tolerance':10, 'lightnessWidth':0},
 		'groups' : [
-			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground'},
+			{'invalid':'foreground', 'invalid.deprecated':'foreground'},
 			['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
 			['meta.arrayindex, meta.item-access.arguments'],
 		]
 	},
 	'foreground' : {
-		'palette' : {'lightness':49, 'chroma':95, 'tolerance':11, 'lightnessWidth':6},
+		'palette' : {'lightness':60, 'chroma':62, 'tolerance':10, 'lightnessWidth':0},
 		'groups' : [
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background'},
 			{'variable.parameter':'', 'invalid.deprecated':'background'},
+			{'string':''},
 			['meta.function', 'variable.function', 'entity.other.attribute-name'], # 'meta.functioncall, meta.function-call'
+			[],
 			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type'],
 			{'constant':''},
 			# ['variable, support.variable, meta.qualified-name, support.other.variable'],
@@ -51,7 +53,6 @@ fontStyles = {
 	'storage.type' : 'italic',
 	'entity.other.inherited-class' : 'italic underline',
 	'entity.name.class' : 'underline',
-	'variable.function' : 'bold',
 	'invalid' : 'bold',
 	'invalid.deprecated' : 'bold',
 }
