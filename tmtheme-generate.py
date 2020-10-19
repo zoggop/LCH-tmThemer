@@ -57,13 +57,14 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 			if len(continuities) > 1:
 				nextCI = (ci + 1) % len(continuities)
 				nextCont = continuities[nextCI]
-				# print(nextCont[0], minHueDist, (nextCont[0] - minHueDist) % 360)
-				highH = max(cont[0], min(cont[1], (nextCont[0] - minHueDist) % 360))
+				nextX = nextCont[0] - minHueDist
+				if nextX < 0:
+					nextX += 360
+				highH = max(cont[0], min(cont[1], nextX))
 			a = cont[0]
 			b = cont[1]
-			length = angleDist(a, highH)
+			length = highH - a
 			divisions = floor(length / minHueDist)
-			# print(a, b, highH, length, divisions)
 			if estimateStepComplete:
 				if divisions == 0:
 					hue = int(a + (length / 2)) % 360
@@ -84,7 +85,7 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 			if currentNumber == wantedNumber or (currentNumber > wantedNumber and lastNumber < wantedNumber):
 				if not foundEqual:
 					foundEqual = iterations
-				print(foundEqual, iterations)
+					# print(foundEqual, iterations)
 				if foundLimit or foundEqual == iterations - 5:
 					print(iterations, "final:", minHueDist)
 					return colors
@@ -106,7 +107,6 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 			elif estimate < wantedNumber:
 				minHueDist -= 1
 			lastEstimate = estimate
-		print(iterations, minHueDist, currentNumber)
 		iterations += 1
 
 def findMinDist(continuities, wantedNumber, minDist, possibles):
@@ -281,7 +281,7 @@ def generatePalette(**args):
 			prevI = len(edges) - 1
 		nextE = edges[nextI]
 		prevE = edges[prevI]
-		print(int(e[0].lch_h), e[1])
+		# print(int(e[0].lch_h), e[1])
 		if e[1] == 1 and nextE[1] == 0:
 			continuities.append([int(e[0].lch_h), int(nextE[0].lch_h)])
 		elif i == 0 and e[1] == 0 and prevE[1] == 0:
@@ -292,6 +292,7 @@ def generatePalette(**args):
 			continuities.append([int(e[0].lch_h), 360])
 	if len(edges) == 0:
 		continuities = [[0, 360]]
+	print(continuities)
 	if minHueDist == None:
 		colors = findMinHueDist(continuities, wantedNumber, 50, possibles)
 	else:
