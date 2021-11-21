@@ -5,14 +5,8 @@
 # group lists or dict keys can include both scopes and names of settings keys
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 palettes = {
-	'comment' : {
-		'palette' : ['#997A66'],
-		'groups' : [
-			{'comment':'foreground', 'findHighlight':''}
-		],
-	},
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'tolerance':1000, 'xMin':30, 'gamutCheck':False},
+		'palette' : {'chroma':0, 'hue':0, 'tolerance':1000, 'xMin':29, 'gamutCheck':False},
 		'groups' : [
 			['caret'],
 			['foreground'],
@@ -24,7 +18,7 @@ palettes = {
 		],
 	},
 	'background' : {
-		'palette' : {'lightness':95, 'chroma':13, 'tolerance':10, 'lightnessWidth':0},
+		'palette' : {'lightness':90, 'chroma':42, 'tolerance':10, 'lightnessWidth':0},
 		'groups' : [
 			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground', 'markup.deleted':''},
 			['entity.name.class', 'entity.other.inherited-class'],
@@ -32,7 +26,7 @@ palettes = {
 		]
 	},
 	'foreground' : {
-		'palette' : {'lightness':49, 'chroma':95, 'tolerance':11, 'lightnessWidth':6},
+		'palette' : {'lightness':40, 'chroma':71, 'tolerance':5, 'lightnessWidth':0},
 		'groups' : [
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background'},
 			{'variable.parameter':'', 'invalid.deprecated':'background'},
@@ -40,6 +34,17 @@ palettes = {
 			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type'],
 			{'constant':''},
 			# ['variable, support.variable, meta.qualified-name, support.other.variable'],
+		]
+	},
+	'comment' : {
+		'palette' : {'lightness':50, 'chroma':15, 'tolerance':5, 'lightnessWidth':0},
+		'groups' : [
+			[],
+			{'comment':'foreground', 'findHighlight':''},
+			[],
+			[],
+			[],
+			[],
 		]
 	}
 }

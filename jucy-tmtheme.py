@@ -36,10 +36,9 @@ palettes = {
 		'palette' : {'lightness':70, 'chroma':80, 'tolerance':1000, 'lightnessWidth':0},
 		'groups' : [
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background'},
-			{'variable.parameter':'', 'invalid.deprecated':'background'},
-			{'string':''},
+			{'string':'', 'invalid.deprecated':'background'},
+			['variable.parameter'],
 			['meta.function', 'variable.function', 'entity.other.attribute-name'], # 'meta.functioncall, meta.function-call'
-			[],
 			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type'],
 			{'constant':''},
 			# ['variable, support.variable, meta.qualified-name, support.other.variable'],

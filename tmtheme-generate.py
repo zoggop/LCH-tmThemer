@@ -1,5 +1,4 @@
-from colormath.color_objects import sRGBColor, LCHabColor
-from colormath.color_conversions import convert_color
+import coloraide
 from lxml import etree as ET
 import sys
 from math import floor, ceil
@@ -9,17 +8,7 @@ settingsKeys = {'background', 'foreground', 'caret', 'invisibles', 'lineHighligh
 def angleDist(a, b):
 	return abs(((b - a) + 180) % 360 - 180)
 
-def tolerance(a, b, t):
-	return abs(b - a) <= t
-
-def LCHtolerance(a, b, t):
-	return tolerance(a.lch_l, b.lch_l, t) and tolerance(a.lch_c, b.lch_c, t) and (a.lch_c == 0 or tolerance(a.lch_h, b.lch_h, t))
-
-def outOfGamut(rgb):
-	return rgb.rgb_r < 0 or rgb.rgb_r > 1 or rgb.rgb_g < 0 or rgb.rgb_g > 1 or rgb.rgb_b < 0 or rgb.rgb_b > 1
-	# return rgb.clamped_rgb_r != rgb.rgb_r or rgb.clamped_rgb_g != rgb.rgb_g or rgb.clamped_rgb_b != rgb.rgb_b
-
-def findGoodLightness(lightness, chroma, hue, t, lightnessT):
+def findGoodLightness(lightness, chroma, hue, lightnessT):
 	found = False
 	d = 0
 	while not found and d <= lightnessT:
@@ -27,13 +16,11 @@ def findGoodLightness(lightness, chroma, hue, t, lightnessT):
 		if d > 0:
 			ls.append(lightness - d)
 		for l in ls:
-			c = LCHabColor(l, chroma, hue)
-			rgb = convert_color(c, sRGBColor)
-			if not outOfGamut(rgb):
-				cc = convert_color(sRGBColor(rgb.clamped_rgb_r, rgb.clamped_rgb_g, rgb.clamped_rgb_b), LCHabColor)
-				if LCHtolerance(c, cc, t):
-					found = c
-					break
+			c = coloraide.Color('lch-d65', [l, chroma, hue])
+			rgb = c.convert('srgb')
+			if rgb.in_gamut():
+				found = c
+				break
 		d += 1
 	return found
 
@@ -60,10 +47,13 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 				nextX = nextCont[0] - minHueDist
 				if nextX < 0:
 					nextX += 360
-				highH = max(cont[0], min(cont[1], nextX))
+				# highH = max(cont[0], min(cont[1], nextX))
+				# highH = min(cont[1], nextX)
 			a = cont[0]
-			b = cont[1]
+			if highH < a:
+				highH = highH + 360
 			length = highH - a
+			# print(length, cont, a, highH)
 			divisions = floor(length / minHueDist)
 			if estimateStepComplete:
 				if divisions == 0:
@@ -76,6 +66,7 @@ def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 					for n in range(0, length+1, step):
 						hue = (a + n) % 360
 						currentNumber += 1
+						# print(n, hue, currentNumber, divisions,step, length)
 						colors.append(possibles[hue])
 			else:
 				estimate += 1 + divisions
@@ -128,7 +119,6 @@ def findMinDist(continuities, wantedNumber, minDist, possibles):
 				nextCont = continuities[ci + 1]
 				highX = min(cont[1], nextCont[0] - minDist)
 			a = cont[0]
-			b = cont[1]
 			length = highX - a
 			if length > 0:
 				divisions = floor(length / minDist)
@@ -181,10 +171,8 @@ def generateLinearPalette(**args):
 	lightness = args.get('lightness')
 	chroma = args.get('chroma')
 	hue = args.get('hue')
-	t = args.get('tolerance')
 	wantedNumber = args.get('wantedNumber')
 	minDist = args.get('minDist')
-	gamutCheck = args.get('gamutCheck')
 	xMin = 0
 	xMax = 100
 	if args.get('xMin') != None:
@@ -193,32 +181,30 @@ def generateLinearPalette(**args):
 		xMax = args.get('xMax')
 	if hue == None or (lightness == None and chroma == None):
 		return
-	xVar = 'lch_l'
+	xVar = 'l'
 	if lightness != None:
-		xVar = 'lch_c'
+		xVar = 'c'
 	possibles = {}
 	edges = []
 	continuities = []
 	colors = []
 	prevPossible = True
 	for x in range(xMin, xMax+1):
-		if xVar == 'lch_l':
+		if xVar == 'l':
 			lightness = x
-		elif xVar == 'lch_c':
+		elif xVar == 'c':
 			chroma = x
-		c = LCHabColor(lightness, chroma, hue)
-		rgb = convert_color(c, sRGBColor)
-		if not outOfGamut(rgb) or gamutCheck == False:
-			cc = convert_color(sRGBColor(rgb.clamped_rgb_r, rgb.clamped_rgb_g, rgb.clamped_rgb_b), LCHabColor)
-			if LCHtolerance(c, cc, t):
-				possibles[x] = c
-				if prevPossible == False:
-					edges.append([c, 1])
-				prevPossible = c
-			else:
-				if prevPossible != False and x != xMin:
-					edges.append([prevPossible, 0])
-					prevPossible = False
+		c = coloraide.Color('lch-d65', [lightness, chroma, hue])
+		rgb = c.convert('srgb')
+		if rgb.in_gamut():
+			possibles[x] = c
+			if prevPossible == False:
+				edges.append([c, 1])
+			prevPossible = c
+		else:
+			if prevPossible != False and x != xMin:
+				edges.append([prevPossible, 0])
+				prevPossible = False
 	for i in range(len(edges)):
 		e = edges[i]
 		nextE = None
@@ -240,8 +226,8 @@ def generateLinearPalette(**args):
 		colors = findMinDist(continuities, None, minDist, possibles)
 	for ci in range(len(colors)):
 		c = colors[ci]
-		hx = convert_color(c, sRGBColor).get_rgb_hex()
-		print(int(c.lch_l), int(c.lch_c), int(c.lch_h), "\t", hx)
+		hx = c.convert('srgb').to_string(hex=True)
+		print(int(c.l), int(c.c), int(c.h), "\t", hx)
 		colors[ci] = hx
 	return colors
 
@@ -249,10 +235,8 @@ def generatePalette(**args):
 	lightness = args.get('lightness')
 	chroma = args.get('chroma')
 	hue = args.get('hue')
-	t = args.get('tolerance')
 	wantedNumber = args.get('wantedNumber')
 	minHueDist = args.get('minHueDist')
-	gamutCheck = args.get('gamutCheck')
 	lightnessT = args.get('lightnessWidth')
 	possibles = {}
 	edges = []
@@ -260,9 +244,9 @@ def generatePalette(**args):
 	colors = []
 	prevPossible = True
 	for hue in range(361):
-		c = findGoodLightness(lightness, chroma, hue, t, lightnessT)
+		c = findGoodLightness(lightness, chroma, hue, lightnessT)
 		if c:
-			# print(hue, c.lch_l)
+			# print(hue, c.l)
 			possibles[hue] = c
 			if prevPossible == False:
 				edges.append([c, 1])
@@ -281,15 +265,15 @@ def generatePalette(**args):
 			prevI = len(edges) - 1
 		nextE = edges[nextI]
 		prevE = edges[prevI]
-		# print(int(e[0].lch_h), e[1])
+		# print(int(e[0].h), e[1])
 		if e[1] == 1 and nextE[1] == 0:
-			continuities.append([int(e[0].lch_h), int(nextE[0].lch_h)])
+			continuities.append([int(e[0].h), int(nextE[0].h)])
 		elif i == 0 and e[1] == 0 and prevE[1] == 0:
 			# if the continuity happens to begin right at hue 0
-			continuities.append([0, int(e[0].lch_h)])
+			continuities.append([0, int(e[0].h)])
 		elif i == len(edges) - 1 and e[1] == 1 and nextE[1] == 1:
 			# if the continuity happens to end right at hue 360
-			continuities.append([int(e[0].lch_h), 360])
+			continuities.append([int(e[0].h), 360])
 	if len(edges) == 0:
 		continuities = [[0, 360]]
 	print(continuities)
@@ -300,8 +284,8 @@ def generatePalette(**args):
 	print(continuities, minHueDist, wantedNumber, len(possibles))
 	for ci in range(len(colors)):
 		c = colors[ci]
-		hx = convert_color(c, sRGBColor).get_rgb_hex()
-		print(int(c.lch_l), int(c.lch_c), int(c.lch_h), "\t", hx)
+		hx = c.convert('srgb').to_string(hex=True)
+		print(int(c.l), int(c.c), int(c.h), "\t", hx)
 		colors[ci] = hx
 	return colors
 

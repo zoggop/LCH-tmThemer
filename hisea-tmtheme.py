@@ -5,17 +5,10 @@
 # group lists or dict keys can include both scopes and names of settings keys
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 palettes = {
-	'comment' : {
-		'palette' : ['#997A66'],
-		'groups' : [
-			{'comment':'foreground', 'findHighlight':''}
-		],
-	},
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'tolerance':1000, 'xMin':30, 'gamutCheck':False},
+		'palette' : {'chroma':0, 'hue':0, 'tolerance':1000, 'xMin':1, 'xMax':100, 'gamutCheck':False},
 		'groups' : [
-			['caret'],
-			['foreground'],
+			['caret', 'foreground'],
 			['activeGuide'],
 			['guide'],
 			['stackGuide', 'invisibles'],
@@ -24,22 +17,30 @@ palettes = {
 		],
 	},
 	'background' : {
-		'palette' : {'lightness':95, 'chroma':13, 'tolerance':10, 'lightnessWidth':0},
+		'palette' : {'lightness':95, 'chroma':20, 'tolerance':10, 'lightnessWidth':0},
 		'groups' : [
 			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground', 'markup.deleted':''},
-			['entity.name.class', 'entity.other.inherited-class'],
+			['entity.name.class', 'entity.other.inherited-class', 'meta.function', 'variable.function', 'entity.other.attribute-name', 'entity.name.function'],
 			['meta.arrayindex, meta.item-access.arguments', 'markup.inserted'],
 		]
 	},
 	'foreground' : {
-		'palette' : {'lightness':49, 'chroma':95, 'tolerance':11, 'lightnessWidth':6},
+		# 'palette' : {'lightness':43, 'chroma':100, 'tolerance':5, 'lightnessWidth':0},
+		'palette' : ['#cc0000', '#005cff', '#b400bb'],
 		'groups' : [
-			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background'},
-			{'variable.parameter':'', 'invalid.deprecated':'background'},
-			['meta.function', 'variable.function', 'entity.other.attribute-name', 'entity.name.function'], # 'meta.functioncall, meta.function-call'
+			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'invalid.deprecated':'background'},
+			# ['meta.function', 'variable.function', 'entity.other.attribute-name', 'entity.name.function'], # 'meta.functioncall, meta.function-call']
 			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type'],
 			{'constant':''},
 			# ['variable, support.variable, meta.qualified-name, support.other.variable'],
+		]
+	},
+	'comment' : {
+		'palette' : {'lightness':95, 'chroma':8, 'tolerance':5, 'lightnessWidth':0},
+		'groups' : [
+			{'comment':'background', 'findHighlight':''},
+			[],
+			[],
 		]
 	}
 }
@@ -49,11 +50,11 @@ fontStyles = {
 	'support.type' : 'italic',
 	'support.class' : 'italic',
 	'storage.type' : 'italic',
-	'entity.other.inherited-class' : 'italic underline',
+	'entity.other.inherited-class' : 'underline',
 	'entity.name.class' : 'underline',
 	'entity.name.function' : 'bold',
-	'invalid' : 'bold',
-	'invalid.deprecated' : 'bold',
+	'invalid' : 'bold underline italic',
+	'invalid.deprecated' : 'bold italic',
 }
 
 ### END CONFIGURATION ###
