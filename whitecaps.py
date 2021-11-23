@@ -6,9 +6,10 @@
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 palettes = {
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'xMin':1, 'xMax':100},
+		'palette' : {'chroma':0, 'hue':0, 'xMin':0},
 		'groups' : [
-			['caret', 'foreground'],
+			['caret'],
+			['foreground', 'variable.parameter'],
 			['activeGuide'],
 			['guide'],
 			['stackGuide', 'invisibles'],
@@ -17,28 +18,33 @@ palettes = {
 		],
 	},
 	'background' : {
-		'palette' : {'lightness':95, 'chroma':20, 'lightnessWidth':0},
+		'palette' : {'lightness':95, 'chroma':25, 'lightnessWidth':0},
 		'groups' : [
-			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground', 'markup.deleted':''},
-			['entity.name.class', 'entity.other.inherited-class', 'meta.function', 'variable.function', 'entity.other.attribute-name', 'entity.name.function'],
+			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground', 'markup.deleted':'', 'meta.separator':''},
+			['entity.other.inherited-class', 'variable.function', 'entity.other.attribute-name'],
 			['meta.arrayindex, meta.item-access.arguments', 'markup.inserted'],
+			# ['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'markup.italic', 'markup.bold'],
 		]
 	},
 	'foreground' : {
-		'palette' : {'lightness':43, 'chroma':89, 'lightnessWidth':0},
-		# 'palette' : ['#cc0000', '#005cff', '#b400bb'],
+		# 'palette' : {'lightness':33, 'chroma':131, 'lightnessWidth':0},
+		'palette' : ['#0000ff', '#a00000'],
 		'groups' : [
-			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'invalid.deprecated':'background'},
-			# ['meta.function', 'variable.function', 'entity.other.attribute-name', 'entity.name.function'], # 'meta.functioncall, meta.function-call']
-			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type'],
-			{'constant':''},
+			# ['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'markup.italic', 'markup.bold'],
+			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'markup.heading':''},
+			['entity.name.function', 'entity.name.class'], # 'meta.functioncall, meta.function-call', 'meta.function', 'variable.function', 'entity.other.attribute-name'
+			# {'constant':''},
+			# {'variable.parameter':'', 'invalid.deprecated':'background'},
 			# ['variable, support.variable, meta.qualified-name, support.other.variable'],
 		]
 	},
 	'comment' : {
-		'palette' : {'lightness':95, 'chroma':6, 'lightnessWidth':0},
+		'palette' : {'lightness':40, 'chroma':25, 'lightnessWidth':0},
 		'groups' : [
-			{'comment':'background', 'findHighlight':''},
+			[],
+			{'comment':'foreground', 'findHighlight':''},
+			[],
+			[],
 			[],
 			[],
 		]
@@ -50,11 +56,14 @@ fontStyles = {
 	'support.type' : 'italic',
 	'support.class' : 'italic',
 	'storage.type' : 'italic',
-	'entity.other.inherited-class' : 'underline',
-	'entity.name.class' : 'underline',
+	'entity.other.inherited-class' : 'italic underline',
+	'entity.name.class' : 'bold underline',
 	'entity.name.function' : 'bold',
-	'invalid' : 'bold underline italic',
-	'invalid.deprecated' : 'bold italic',
+	'invalid' : 'bold',
+	'invalid.deprecated' : 'bold',
+	'markup.heading' : 'underline',
+	'markup.italic' : 'italic',
+	'markup.bold' : 'bold',
 }
 
 ### END CONFIGURATION ###

@@ -24,6 +24,58 @@ def findGoodLightness(lightness, chroma, hue, lightnessT):
 		d += 1
 	return found
 
+def findEquidistantColors(possibles, continuities, wantedNumber):
+	e = 8
+	firstHue = continuities[0][0]
+	lastHue = firstHue - 1
+	if lastHue < 0:
+		lastHue = 360
+	iterations = 0
+	print(firstHue, lastHue)
+	goodColors = None
+	goodE = None
+	wentOver = False
+	while iterations < 200:
+		colors = [possibles[firstHue]]
+		done = False
+		while not done:
+			startH = int(colors[-1].h + 1)
+			if startH == 361:
+				startH = 1
+			hue = startH
+			while hue != int(colors[-1].h):
+				c = possibles.get(hue)
+				# print(hue, c)
+				if c != None:
+					deltaELast = colors[-1].delta_e(c, method='2000')
+					deltaEFirst = colors[0].delta_e(c, method='2000')
+					if min(deltaELast, deltaEFirst) >= e:
+						colors.append(c)
+						break
+				hue = hue + 1
+				if hue == 361:
+					hue = 0
+				if hue == lastHue:
+					done = True
+					break
+		# print(iterations, e, len(colors), wantedNumber)
+		if len(colors) > wantedNumber:
+			if wentOver and goodColors != None:
+				return goodColors
+			else:
+				e = e + int(len(colors) / wantedNumber)
+		elif len(colors) < wantedNumber:
+			wentOver = True
+			e = e - 1
+		elif len(colors) == wantedNumber:
+			if wentOver and goodColors != None:
+				return goodColors
+			if goodColors == None or e > goodE:
+				goodColors = colors
+				goodE = e
+			e = e + 0.1
+		iterations = iterations + 1
+
 def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
 	currentNumber = 0
 	iterations = 0
@@ -278,7 +330,8 @@ def generatePalette(**args):
 		continuities = [[0, 360]]
 	print(continuities)
 	if minHueDist == None:
-		colors = findMinHueDist(continuities, wantedNumber, 50, possibles)
+		# colors = findMinHueDist(continuities, wantedNumber, 50, possibles)
+		colors = findEquidistantColors(possibles, continuities, wantedNumber)
 	else:
 		colors = findMinHueDist(continuities, None, minHueDist, possibles)
 	print(continuities, minHueDist, wantedNumber, len(possibles))

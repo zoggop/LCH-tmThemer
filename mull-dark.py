@@ -6,39 +6,41 @@
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 palettes = {
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'xMin':23},
+		'palette' : {'chroma':0, 'hue':0, 'xMin':15, 'xMax':80},
 		'groups' : [
-			['caret'],
-			['foreground'],
-			['activeGuide'],
-			['guide'],
-			['stackGuide', 'invisibles'],
-			['selection', 'lineHighlight'],
 			['background', 'findHighlightForeGround', 'selectionBorder'],
+			['selection', 'lineHighlight'],
+			['stackGuide', 'invisibles'],
+			['guide'],
+			['activeGuide'],
+			['foreground'],
+			['caret'],
 		],
 	},
 	'background' : {
-		'palette' : {'lightness':95, 'chroma':20, 'lightnessWidth':0},
+		'palette' : {'lightness':25, 'chroma':46, 'lightnessWidth':0},
 		'groups' : [
-			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground', 'markup.deleted':'', 'meta.separator':''},
-			['entity.name.class', 'entity.other.inherited-class'],
-			['meta.arrayindex, meta.item-access.arguments', 'markup.inserted'],
+			[],# ['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
+			['meta.arrayindex, meta.item-access.arguments'],
+			{'invalid':'foreground', 'invalid.deprecated':'foreground'},
 		]
 	},
 	'foreground' : {
-		'palette' : {'lightness':54, 'chroma':80, 'lightnessWidth':0},
-		# 'palette' : ['#009f00', '#0f58fe', '#ce02cf', '#fe0074', '#e35100'],
+		'palette' : {'lightness':65, 'chroma':54, 'lightnessWidth':0},
 		'groups' : [
-			['meta.function', 'variable.function', 'entity.other.attribute-name', 'entity.name.function'], # 'meta.functioncall, meta.function-call'
-			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'markup.italic', 'markup.bold'],
+			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'meta.separator'],
 			{'constant':''},
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'markup.heading':''},
 			{'variable.parameter':'', 'invalid.deprecated':'background'},
+			# {'string':''},
+			['string', 'markup.italic', 'markup.bold', 'markup.strike'],
+			['meta.function', 'variable.function', 'entity.other.attribute-name'], # 'meta.functioncall, meta.function-call'
+			[],
 			# ['variable, support.variable, meta.qualified-name, support.other.variable'],
 		]
 	},
 	'comment' : {
-		'palette' : {'lightness':40, 'chroma':25, 'lightnessWidth':0},
+		'palette' : {'lightness':55, 'chroma':24, 'lightnessWidth':0},
 		'groups' : [
 			[],
 			{'comment':'foreground', 'findHighlight':''},
@@ -57,7 +59,6 @@ fontStyles = {
 	'storage.type' : 'italic',
 	'entity.other.inherited-class' : 'italic underline',
 	'entity.name.class' : 'underline',
-	'entity.name.function' : 'bold',
 	'invalid' : 'bold',
 	'invalid.deprecated' : 'bold',
 	'markup.heading' : 'underline',
