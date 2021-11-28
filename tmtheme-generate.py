@@ -2,8 +2,11 @@ import coloraide
 from lxml import etree as ET
 import sys
 from math import floor, ceil
+import os
 
 settingsKeys = {'background', 'foreground', 'caret', 'invisibles', 'lineHighlight', 'selection', 'findHighlightForeGround', 'findHighlight', 'selectionBorder', 'guide', 'activeGuide', 'stackGuide'}
+
+defaultDirectory = '~/AppData/Roaming/Sublime Text 3/Packages/User/'
 
 def angleDist(a, b):
 	return abs(((b - a) + 180) % 360 - 180)
@@ -24,7 +27,7 @@ def findGoodLightness(lightness, chroma, hue, lightnessT):
 		d += 1
 	return found
 
-def findEquidistantColors(possibles, continuities, wantedNumber):
+def findEquidistantHues(possibles, continuities, wantedNumber):
 	e = 8
 	firstHue = continuities[0][0]
 	lastHue = firstHue - 1
@@ -41,7 +44,7 @@ def findEquidistantColors(possibles, continuities, wantedNumber):
 		while not done:
 			startH = int(colors[-1].h + 1)
 			if startH == 361:
-				startH = 1
+				startH = 0
 			hue = startH
 			while hue != int(colors[-1].h):
 				c = possibles.get(hue)
@@ -76,149 +79,6 @@ def findEquidistantColors(possibles, continuities, wantedNumber):
 			e = e + 0.1
 		iterations = iterations + 1
 
-def findMinHueDist(continuities, wantedNumber, minHueDist, possibles):
-	currentNumber = 0
-	iterations = 0
-	colors = []
-	estimateStepComplete = wantedNumber == None
-	done = False
-	foundEqual = False
-	foundLimit = False
-	lastNumber = 500
-	lastEstimate = 500
-	while not done and iterations < 100:
-		estimate = 0
-		currentNumber = 0
-		colors = []
-		for ci in range(len(continuities)):
-			cont = continuities[ci]
-			highH = cont[1]
-			if len(continuities) > 1:
-				nextCI = (ci + 1) % len(continuities)
-				nextCont = continuities[nextCI]
-				nextX = nextCont[0] - minHueDist
-				if nextX < 0:
-					nextX += 360
-				# highH = max(cont[0], min(cont[1], nextX))
-				# highH = min(cont[1], nextX)
-			a = cont[0]
-			if highH < a:
-				highH = highH + 360
-			length = highH - a
-			# print(length, cont, a, highH)
-			divisions = floor(length / minHueDist)
-			if estimateStepComplete:
-				if divisions == 0:
-					hue = int(a + (length / 2)) % 360
-					currentNumber += 1
-					colors.append(possibles[hue])
-				else:
-					step = int(length / divisions)
-					# print(a, b, highH, length, divisions)
-					for n in range(0, length+1, step):
-						hue = (a + n) % 360
-						currentNumber += 1
-						# print(n, hue, currentNumber, divisions,step, length)
-						colors.append(possibles[hue])
-			else:
-				estimate += 1 + divisions
-		if wantedNumber == None:
-			return colors
-		if estimateStepComplete:
-			if currentNumber == wantedNumber or (currentNumber > wantedNumber and lastNumber < wantedNumber):
-				if not foundEqual:
-					foundEqual = iterations
-					# print(foundEqual, iterations)
-				if foundLimit or foundEqual == iterations - 5:
-					print(iterations, "final:", minHueDist)
-					return colors
-				else:
-					minHueDist += 1
-			if currentNumber > wantedNumber:
-				minHueDist += 1
-			elif currentNumber < wantedNumber:
-				minHueDist -= 1
-				if foundEqual:
-					foundLimit = True
-			lastNumber = currentNumber
-		else:
-			if estimate == wantedNumber or (estimate > wantedNumber and lastEstimate < wantedNumber):
-				print(iterations, "estimate:", minHueDist, estimate, wantedNumber)
-				estimateStepComplete = True
-			elif estimate > wantedNumber:
-				minHueDist += 1
-			elif estimate < wantedNumber:
-				minHueDist -= 1
-			lastEstimate = estimate
-		iterations += 1
-
-def findMinDist(continuities, wantedNumber, minDist, possibles):
-	currentNumber = 0
-	iterations = 0
-	colors = []
-	estimateStepComplete = wantedNumber == None
-	done = False
-	foundEqual = False
-	foundLimit = False
-	while not done and iterations < 100:
-		estimate = 0
-		currentNumber = 0
-		colors = []
-		for ci in range(len(continuities)):
-			cont = continuities[ci]
-			highX = cont[1]
-			if len(continuities) > 1 and ci != len(continuities) - 1:
-				nextCont = continuities[ci + 1]
-				highX = min(cont[1], nextCont[0] - minDist)
-			a = cont[0]
-			length = highX - a
-			if length > 0:
-				divisions = floor(length / minDist)
-				# print(a, b, highH, length, divisions)
-				if estimateStepComplete:
-					if divisions == 0:
-						x = int(a + (length / 2))
-						currentNumber += 1
-						colors.append(possibles[x])
-					else:
-						step = int(length / divisions)
-						xs = []
-						for x in range(a, highX, step):
-							xs.append(x)
-						for xi in range(0, len(xs)):
-							x = xs[xi]
-							if xi == len(xs) - 1:
-								x = highX
-							currentNumber += 1
-							colors.append(possibles[x])
-				else:
-					estimate += 1 + divisions
-		if wantedNumber == None:
-			return colors
-		if estimateStepComplete:
-			if currentNumber == wantedNumber:
-				foundEqual = True
-				if foundLimit:
-					print(iterations, "final:", minDist)
-					return colors
-				else:
-					minDist += 1
-			if currentNumber > wantedNumber:
-				minDist += 1
-			elif currentNumber < wantedNumber:
-				minDist -= 1
-				if foundEqual:
-					foundLimit = True
-		else:
-			if estimate == wantedNumber:
-				print(iterations, "estimate:", minDist)
-				estimateStepComplete = True
-			elif estimate > wantedNumber:
-				minDist += 1
-			elif estimate < wantedNumber:
-				minDist -= 1
-		iterations += 1
-
 def generateLinearPalette(**args):
 	lightness = args.get('lightness')
 	chroma = args.get('chroma')
@@ -236,51 +96,21 @@ def generateLinearPalette(**args):
 	xVar = 'l'
 	if lightness != None:
 		xVar = 'c'
-	possibles = {}
-	edges = []
-	continuities = []
 	colors = []
-	prevPossible = True
-	for x in range(xMin, xMax+1):
+	xWidth = xMax - xMin
+	if wantedNumber != None:
+		minDist = xWidth / (wantedNumber - 1)
+	x = xMin
+	while x <= xMax:
 		if xVar == 'l':
 			lightness = x
 		elif xVar == 'c':
 			chroma = x
 		c = coloraide.Color('lch-d65', [lightness, chroma, hue])
-		rgb = c.convert('srgb')
-		if rgb.in_gamut():
-			possibles[x] = c
-			if prevPossible == False:
-				edges.append([c, 1])
-			prevPossible = c
-		else:
-			if prevPossible != False and x != xMin:
-				edges.append([prevPossible, 0])
-				prevPossible = False
-	for i in range(len(edges)):
-		e = edges[i]
-		nextE = None
-		if i < len(edges)-2:
-			nextE = edges[e+1]
-		if e[1] == 1 and nextE and nextE[1] == 0:
-				continuities.append([int(getattr(e[0], xVar)), int(getattr(nextE[0], xVar))])
-		elif i == 0 and e[1] == 0:
-			# if the continuity happens to begin at minimum x
-			continuities.append([xMin, int(getattr(e[0], xVar))])
-		elif i == len(edges) - 1 and e[1] == 1:
-			# if the continuity happens to end at maximum x
-			continuities.append([int(getattr(e[0], xVar)), xMax])
-	if len(edges) == 0:
-		continuities = [[xMin, xMax]]
-	if wantedNumber != None:
-		colors = findMinDist(continuities, wantedNumber, 50, possibles)
-	elif minDist != None:
-		colors = findMinDist(continuities, None, minDist, possibles)
-	for ci in range(len(colors)):
-		c = colors[ci]
 		hx = c.convert('srgb').to_string(hex=True)
 		print(int(c.l), int(c.c), int(c.h), "\t", hx)
-		colors[ci] = hx
+		colors.append(hx)
+		x = x + minDist
 	return colors
 
 def generatePalette(**args):
@@ -331,7 +161,7 @@ def generatePalette(**args):
 	print(continuities)
 	if minHueDist == None:
 		# colors = findMinHueDist(continuities, wantedNumber, 50, possibles)
-		colors = findEquidistantColors(possibles, continuities, wantedNumber)
+		colors = findEquidistantHues(possibles, continuities, wantedNumber)
 	else:
 		colors = findMinHueDist(continuities, None, minHueDist, possibles)
 	print(continuities, minHueDist, wantedNumber, len(possibles))
@@ -387,6 +217,8 @@ def keyStringPair(parent, key, string):
 tmThemeFile = 'generated.tmTheme'
 if len(sys.argv) > 1:
 	exec(open(sys.argv[1]).read())
+	tmThemeFile = os.path.expanduser(defaultDirectory + os.path.splitext(os.path.split(sys.argv[1])[-1])[0]+'.tmTheme')
+	print(tmThemeFile)
 if len(sys.argv) > 2:
 	tmThemeFile = sys.argv[2]
 

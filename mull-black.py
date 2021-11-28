@@ -6,7 +6,7 @@
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 palettes = {
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'xMin':15, 'xMax':65},
+		'palette' : {'chroma':0, 'hue':0, 'xMin':0, 'xMax':55},
 		'groups' : [
 			['background', 'findHighlightForeGround', 'selectionBorder'],
 			['selection', 'lineHighlight'],
@@ -17,33 +17,33 @@ palettes = {
 		],
 	},
 	'background' : {
-		'palette' : {'lightness':25, 'chroma':46, 'lightnessWidth':0},
+		'palette' : {'lightness':10, 'chroma':33, 'lightnessWidth':0},
 		'groups' : [
-			[],# ['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
-			['meta.arrayindex, meta.item-access.arguments'],
 			{'invalid':'foreground', 'invalid.deprecated':'foreground'},
+			['meta.arrayindex, meta.item-access.arguments'],
+			[], # ['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
 		]
 	},
 	'foreground' : {
-		'palette' : {'lightness':65, 'chroma':54, 'lightnessWidth':0},
+		'palette' : {'lightness':55, 'chroma':60, 'lightnessWidth':0},
 		'groups' : [
-			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'meta.separator', 'keyword.declaration'],
+			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'meta.separator'],
 			{'constant':''},
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'markup.heading':''},
 			{'variable.parameter':'', 'invalid.deprecated':'background'},
+			# {'string':''},
 			['string', 'markup.italic', 'markup.bold', 'markup.strike'],
 			['meta.function', 'variable.function', 'entity.other.attribute-name'], # 'meta.functioncall, meta.function-call'
-			# [],
 			# ['variable, support.variable, meta.qualified-name, support.other.variable'],
 		]
 	},
 	'comment' : {
-		'palette' : {'lightness':55, 'chroma':24, 'lightnessWidth':0},
+		'palette' : {'lightness':45, 'chroma':30, 'lightnessWidth':0},
 		'groups' : [
 			[],
+			[],
+			[],
 			{'comment':'foreground', 'findHighlight':''},
-			[],
-			[],
 			[],
 			[],
 		]
