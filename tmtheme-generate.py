@@ -28,7 +28,7 @@ def findGoodLightness(lightness, chroma, hue, lightnessT):
 	return found
 
 def findEquidistantHues(possibles, continuities, wantedNumber):
-	e = 8
+	e = 49
 	firstHue = continuities[0][0]
 	lastHue = firstHue - 1
 	if lastHue < 0:
@@ -37,7 +37,7 @@ def findEquidistantHues(possibles, continuities, wantedNumber):
 	print(firstHue, lastHue)
 	goodColors = None
 	goodE = None
-	wentOver = False
+	eStep = 10
 	while iterations < 200:
 		colors = [possibles[firstHue]]
 		done = False
@@ -62,21 +62,24 @@ def findEquidistantHues(possibles, continuities, wantedNumber):
 					done = True
 					break
 		# print(iterations, e, len(colors), wantedNumber)
-		if len(colors) > wantedNumber:
-			if wentOver and goodColors != None:
-				return goodColors
-			else:
-				e = e + int(len(colors) / wantedNumber)
-		elif len(colors) < wantedNumber:
-			wentOver = True
-			e = e - 1
+		if len(colors) < wantedNumber:
+			e -= eStep
 		elif len(colors) == wantedNumber:
-			if wentOver and goodColors != None:
-				return goodColors
 			if goodColors == None or e > goodE:
 				goodColors = colors
 				goodE = e
-			e = e + 0.1
+			if eStep == 0.01:
+				print(iterations, "found deltae interval:", '{:.2f}'.format(e))
+				return goodColors
+			e += eStep
+			eStep = eStep / 10
+			e -= eStep
+		elif len(colors) > wantedNumber:
+			if eStep <= 0.01 and not goodColors is None:
+				return goodColors
+			e += eStep
+			eStep = eStep / 10
+			e -= eStep
 		iterations = iterations + 1
 
 def generateLinearPalette(**args):
