@@ -8,8 +8,16 @@ settingsKeys = {'background', 'foreground', 'caret', 'invisibles', 'lineHighligh
 
 defaultDirectory = '~/AppData/Roaming/Sublime Text 3/Packages/User/'
 
+maxChroma = 134
+
 def angleDist(a, b):
 	return abs(((b - a) + 180) % 360 - 180)
+
+def lch_to_rgb(lightness, chroma, hue):
+	c = coloraide.Color('lch-d65', [lightness, chroma, hue]).convert('srgb')
+	if c.in_gamut():
+		return c
+	return None
 
 def findGoodLightness(lightness, chroma, hue, lightnessT):
 	found = False
@@ -26,6 +34,25 @@ def findGoodLightness(lightness, chroma, hue, lightnessT):
 				break
 		d += 1
 	return found
+
+def highestChromaColor(lightness, hue):
+	for chroma in range(maxChroma, 0, -1):
+		c = lch_to_rgb(lightness, chroma, hue)
+		if not c is None:
+			if chroma < maxChroma:
+				decaChroma = chroma + 0.9
+				while decaChroma >= chroma:
+					dc = lch_to_rgb(lightness, decaChroma, hue)
+					if not dc is None:
+						centiChroma = decaChroma + 0.09
+						while centiChroma >= decaChroma:
+							cc = lch_to_rgb(lightness, centiChroma, hue)
+							if not cc is None:
+								return cc
+							centiChroma -= 0.01
+					decaChroma -= 0.1
+			else:
+				return c
 
 def findEquidistantHues(possibles, continuities, wantedNumber):
 	e = 49
@@ -104,7 +131,8 @@ def generateLinearPalette(**args):
 	if wantedNumber != None:
 		minDist = xWidth / (wantedNumber - 1)
 	x = xMin
-	while x <= xMax:
+	print(wantedNumber, minDist, xMin, xMax)
+	while True:
 		if xVar == 'l':
 			lightness = x
 		elif xVar == 'c':
@@ -113,7 +141,9 @@ def generateLinearPalette(**args):
 		hx = c.convert('srgb').to_string(hex=True)
 		print(int(c.l), int(c.c), int(c.h), "\t", hx)
 		colors.append(hx)
-		x = x + minDist
+		if x == xMax:
+			break
+		x = min(xMax, x + minDist)
 	return colors
 
 def generatePalette(**args):
@@ -123,13 +153,35 @@ def generatePalette(**args):
 	wantedNumber = args.get('wantedNumber')
 	minHueDist = args.get('minHueDist')
 	lightnessT = args.get('lightnessWidth')
+	hues = args.get('hues')
+	if not hues is None:
+		huesPalette = palettes.get(hues)
+		if not huesPalette is None:
+			colors = []
+			for colorHex in huesPalette.get('palette'):
+				h = coloraide.Color(colorHex).convert('lch-d65').h
+				if chroma == None:
+					c = highestChromaColor(lightness, h).convert('lch-d65')
+				else:
+					c = findGoodLightness(lightness, chroma, h, lightnessT)
+				hx = c.convert('srgb').to_string(hex=True)
+				print(int(c.l), int(c.c), int(c.h), "\t", hx)
+				colors.append(hx)
+			return colors
+	startHue = args.get('startHue') or 0
+	endHue = startHue - 1
+	if endHue == -1:
+		endHue = 360
 	possibles = {}
 	edges = []
 	continuities = []
 	colors = []
 	prevPossible = True
 	for hue in range(361):
-		c = findGoodLightness(lightness, chroma, hue, lightnessT)
+		if chroma == None:
+			c = highestChromaColor(lightness, hue).convert('lch-d65')
+		else:
+			c = findGoodLightness(lightness, chroma, hue, lightnessT)
 		if c:
 			# print(hue, c.l)
 			possibles[hue] = c
@@ -160,7 +212,7 @@ def generatePalette(**args):
 			# if the continuity happens to end right at hue 360
 			continuities.append([int(e[0].h), 360])
 	if len(edges) == 0:
-		continuities = [[0, 360]]
+		continuities = [[startHue, endHue]]
 	print(continuities)
 	if minHueDist == None:
 		# colors = findMinHueDist(continuities, wantedNumber, 50, possibles)
@@ -211,6 +263,20 @@ def assignColors(palettes):
 				pi = (pi + 1) % len(palette)
 	return scopes, settings
 
+def assignJsonColors(palettes):
+	scheme = {}
+	for paletteName in palettes.keys():
+		paletteDef = palettes.get(paletteName)
+		paletteGroups = paletteDef.get('groups')
+		palette = paletteDef.get('palette')
+		if palette:
+			pi = 0
+			for g in paletteGroups:
+				for key in g:
+					scheme[key] = palette[pi]
+				pi = (pi + 1) % len(palette)
+	return scheme
+
 def keyStringPair(parent, key, string):
 	k = ET.SubElement(parent, 'key')
 	k.text = key
@@ -236,6 +302,35 @@ for paletteName in palettes.keys():
 			palettes[paletteName]['palette'] = generatePalette(**palette)
 		else:
 			palettes[paletteName]['palette'] = generateLinearPalette(**palette)
+
+if not configuration is None:
+	if configuration.get('type') == 'json':
+		scheme = assignJsonColors(palettes)
+		scheme['name'] = configuration.get('name')
+		import json
+		fp = open(os.path.expanduser(os.path.splitext(os.path.split(sys.argv[1])[-1])[0]+'.json'), 'w')
+		json.dump(scheme, fp, sort_keys=True, indent=4, separators=(',', ': '))
+		fp.close()
+		# print(scheme)
+		exit()
+	elif configuration.get('type') == 'Windows Terminal':
+		newScheme = assignJsonColors(palettes)
+		newScheme['name'] = configuration.get('name')
+		import json
+		settingsPath = os.path.expanduser('~/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState/settings.json')
+		fp = open(settingsPath)
+		settings = json.load(fp)
+		fp.close()
+		schemes = settings.get('schemes')
+		for si in range(len(schemes)):
+			scheme = schemes[si]
+			name = scheme.get('name')
+			if name == configuration.get('name'):
+				schemes[si] = newScheme
+		fp = open(settingsPath, 'w')
+		json.dump(settings, fp, sort_keys=True, indent=4, separators=(',', ': '))
+		fp.close()
+		exit()
 
 scopes, settings = assignColors(palettes)
 

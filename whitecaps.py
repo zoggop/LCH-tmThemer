@@ -6,10 +6,9 @@
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 palettes = {
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'xMin':0},
+		'palette' : {'chroma':0, 'hue':0, 'xMin':0, 'xMax':100},
 		'groups' : [
-			['caret'],
-			['foreground', 'variable.parameter'],
+			['caret', 'foreground', 'variable.parameter'],
 			['activeGuide'],
 			['guide'],
 			['stackGuide', 'invisibles'],
