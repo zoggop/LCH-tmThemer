@@ -1,13 +1,15 @@
 import sys
 import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import datetime
 import os
+import math
 
 resoultionMultiplier = 1
 
-maxChroma = 132
+maxChroma = 0.4
+pixelsPerChroma = 250
+pixelsChroma = math.ceil(maxChroma * pixelsPerChroma)
 
 lch2rgbMap = None
 
@@ -39,27 +41,28 @@ def upscaleRGB(rgb):
 	return newRGB
 
 def lch_to_rgb(lightness, chroma, hue):
-	c = coloraide.Color('lch-d65', [lightness, chroma, hue]).convert('srgb')
+	c = coloraide.Color('oklch', [lightness, chroma, hue]).convert('srgb')
 	if c.in_gamut():
 		return c
 	return None
 
 def rgb_to_lch(red, green, blue):
-	c = coloraide.Color('srgb', [red/255, green/255, blue/255]).convert('lch-d65')
+	c = coloraide.Color('srgb', [red/255, green/255, blue/255]).convert('oklch')
 	if c.in_gamut():
 		return c
 	return None
 
-def highestChromaColor(lightness, hue, stepStop=2):
+def highestChromaColor(lightness, hue, stepStop=4):
 	stepStop = 1 / (10 ** stepStop)
-	chromaStep = 10
-	if maxChroma < 10:
-		chromaStep = 1
+	chromaStep = 0.1
+	if maxChroma < 0.1:
+		chromaStep = 0.01
 	chroma = maxChroma
 	iteration = 0
 	while iteration < 45:
 		c = lch_to_rgb(lightness, chroma, hue)
 		if not c is None:
+			# print(chroma, chromaStep, stepStop)
 			if chromaStep == stepStop or maxChroma == 0:
 				return c
 			else:
@@ -71,7 +74,7 @@ def highestChromaColor(lightness, hue, stepStop=2):
 	print(chromaStep, lightness, chroma, hue, iteration)
 
 def gamutPixel(lightness, chroma, hue):
-	c = coloraide.Color('lch-d65', [lightness, chroma, hue]).convert('srgb')
+	c = coloraide.Color('oklch', [lightness, chroma, hue]).convert('srgb')
 	if c.in_gamut():
 		return upscaleRGB(c.coords())
 	else:
@@ -82,117 +85,100 @@ def gamutPixel(lightness, chroma, hue):
 
 def findRGBGamut(lightness, chroma, hue):
 	extent = []
+	aspect = 1
 	rgbMap = None
 	if lightness and chroma:
-		extent = [0, 360, 0, 101]
-		rgbMap = np.zeros([101, 360, 3], dtype=np.uint8)
+		extent = [0, 360, 0, 360]
+		rgbMap = np.zeros([100, 360, 3], dtype=np.uint8)
 		for hue in range(0, 360):
 			rgb = gamutPixel(lightness, chroma, hue)
-			for y in range(0, 101):
+			for y in range(0, 100):
 				rgbMap[y, hue] = rgb
 	elif lightness and hue:
-		extent = [0, maxChroma+1, 0, 101]
-		rgbMap = np.zeros([101, maxChroma+1, 3], dtype=np.uint8)
-		for chroma in range(0, maxChroma+1):
+		extent = [0, maxChroma, 0, maxChroma]
+		rgbMap = np.zeros([100, pixelsChroma, 3], dtype=np.uint8)
+		for pixelChroma in range(0, pixelsChroma):
+			chroma = pixelChroma / pixelsPerChroma
 			rgb = gamutPixel(lightness, chroma, hue)
-			for y in range(0, 101):
-				rgbMap[y, chroma] = rgb
+			for y in range(0, 100):
+				rgbMap[y, pixelChroma] = rgb
 	elif chroma and hue:
-		extent = [0, 101, 0, 101]
-		rgbMap = np.zeros([101, 101, 3], dtype=np.uint8)
-		for lightness in range(0, 101):
+		extent = [0, 1, 0, 1]
+		rgbMap = np.zeros([100, 100, 3], dtype=np.uint8)
+		for pixelLightness in range(0, 100):
+			lightness = pixelLightness / 100
 			rgb = gamutPixel(lightness, chroma, hue)
-			for y in range(0, 101):
-				rgbMap[y, lightness] = rgb
+			for y in range(0, 100):
+				rgbMap[y, pixelLightness] = rgb
 	elif lightness:
-		extent = [0, 360, 0, maxChroma+1]
-		rgbMap = np.zeros([((maxChroma+1)*resoultionMultiplier), 360, 3], dtype=np.uint8)
-		for chroma in np.arange(0, maxChroma+1, 1/resoultionMultiplier):
+		extent = [0, 360, 0, maxChroma]
+		aspect = 360 / maxChroma
+		rgbMap = np.zeros([(pixelsChroma*resoultionMultiplier), 360, 3], dtype=np.uint8)
+		for pixelChroma in np.arange(0, pixelsChroma, 1/resoultionMultiplier):
+			chroma = pixelChroma / pixelsPerChroma
 			for hue in range(0, 360):
 				rgb = gamutPixel(lightness, chroma, hue)
-				rgbMap[int(chroma*resoultionMultiplier), hue] = rgb
+				rgbMap[int(pixelChroma*resoultionMultiplier), hue] = rgb
 	elif chroma:
-		extent = [0, 360, 0, 101]
-		rgbMap = np.zeros([101, 360, 3], dtype=np.uint8)
-		for lightness in range(0, 101):
+		extent = [0, 360, 0, 1]
+		aspect = 360
+		rgbMap = np.zeros([100, 360, 3], dtype=np.uint8)
+		for pixelLightness in range(0, 100):
+			lightness = pixelLightness / 100
 			for hue in range(0, 360):
 				rgb = gamutPixel(lightness, chroma, hue)
-				rgbMap[lightness, hue] = rgb
+				rgbMap[pixelLightness, hue] = rgb
 	elif hue:
-		extent = [0, maxChroma+1, 0, 101]
-		rgbMap = np.zeros([101*resoultionMultiplier, ((maxChroma+1)*resoultionMultiplier), 3], dtype=np.uint8)
-		for lightness in np.arange(0, 101, 1/resoultionMultiplier):
-			for chroma in np.arange(0, maxChroma+1, 1/resoultionMultiplier):
+		extent = [0, maxChroma, 0, 1]
+		aspect = maxChroma
+		rgbMap = np.zeros([100*resoultionMultiplier, pixelsChroma*resoultionMultiplier, 3], dtype=np.uint8)
+		for pixelLightness in np.arange(0, 100, 1/resoultionMultiplier):
+			lightness = pixelLightness / 100
+			for pixelChroma in np.arange(0, pixelsChroma, 1/resoultionMultiplier):
+				chroma = pixelChroma / pixelsPerChroma
 				rgb = gamutPixel(lightness, chroma, hue)
-				rgbMap[int(lightness*resoultionMultiplier), int(chroma*resoultionMultiplier)] = rgb
+				rgbMap[int(pixelLightness*resoultionMultiplier), int(pixelChroma*resoultionMultiplier)] = rgb
 	else:
 		return
-	return rgbMap, extent
-
-def gamutScatterPlot():
-	gamutMap = {}
-	Ls = []
-	Cs = []
-	Hs = []
-	RGBs = []
-	for lightness in range(100):
-		for chroma in range(maxChroma):
-			for hue in range(1, 360):
-				address = '{} {} {}'.format(lightness, chroma, hue)
-				# c = lchColor(lightness, chroma, hue, illuminant='D65')
-				# rgb = convert_color(c, sRGBColor)
-				c = [lightness, chroma, hue]
-				colour.convert(c, 'LCHab', 'sRGB')
-				if not outOfGamut(rgb) and lchTolerance(c, convert_color(rgb, lchColor)):
-					gamutMap[address] = 1
-					prevL = '{} {} {}'.format(lightness-1, chroma, hue)
-					prevC = '{} {} {}'.format(lightness, chroma-1, hue)
-					prevH = '{} {} {}'.format(lightness, chroma, hue-1)
-					if gamutMap.get(prevL) == 0 or gamutMap.get(prevC) == 0 or gamutMap.get(prevH) == 0:
-						Ls.append(lightness)
-						Cs.append(chroma)
-						Hs.append(hue)
-						RGBs.append([rgb.clamped_rgb_r, rgb.clamped_rgb_g, rgb.clamped_rgb_b])
-				else:
-					gamutMap[address] = 0
-	print(len(Ls))
-	return Ls, Cs, Hs, RGBs
+	return rgbMap, extent, aspect
 
 def localHueDelta(lightness, chroma, hue):
 	hueA = (hue - 1) % 360
 	hueB = (hue + 1) % 360
-	colorA = coloraide.Color('lch-d65', [lightness, chroma, hueA])
-	colorB = coloraide.Color('lch-d65', [lightness, chroma, hueB])
+	colorA = coloraide.Color('oklch', [lightness, chroma, hueA])
+	colorB = coloraide.Color('oklch', [lightness, chroma, hueB])
 	return colorA.delta_e(colorB, method='2000')
 
 def lowestCommonChroma(lightness):
 	lowestCommonChroma = None
 	for hue in range(0, 360):
-		col = highestChromaColor(lightness, hue, 0)
-		chroma = col.convert('lch-d65').c
+		col = highestChromaColor(lightness, hue)
+		chroma = col.convert('oklch').c
 		if lowestCommonChroma is None or chroma < lowestCommonChroma:
 			lowestCommonChroma = chroma
 	return lowestCommonChroma
 
 def measureHueDelta(lightness):
-	rgbMap = np.zeros([101, 360, 3], dtype=np.uint8)
+	rgbMap = np.zeros([100, 360, 3], dtype=np.uint8)
 	doAvg = False
-	if lightness > 100:
+	if lightness > 1:
 		doAvg = True
 	deltas = []
 	highestD = None
 	lowestD = None
 	if doAvg == True:
 		lccs = {}
-		for lightness in range(1, 100):
-			lccs[lightness] = lowestCommonChroma(lightness)
-			print("lightness", lightness, lccs.get(lightness), "lowest common chroma")
+		for pixelLightness in range(1, 100):
+			lightness = pixelLightness / 100
+			lccs[pixelLightness] = lowestCommonChroma(lightness)
+			print("lightness", lightness, lccs.get(pixelLightness), "lowest common chroma")
 	chroma = lowestCommonChroma(lightness)
 	for hue in range(0, 360):
 		if doAvg == True:
 			dSum = 0
-			for lightness in range(1, 100):
-				chroma = lccs.get(lightness)
+			for pixelLightness in range(1, 100):
+				lightness = pixelLightness / 100
+				chroma = lccs.get(pixelLightness)
 				dSum += localHueDelta(lightness, chroma, hue)
 			delta = dSum / 99
 		else:
@@ -204,7 +190,7 @@ def measureHueDelta(lightness):
 			highestD = delta
 		print(hue, delta)
 	if doAvg == True:
-		lightness = 50
+		lightness = 0.5
 		chroma = lccs.get(50)
 	deltaRange = highestD - lowestD
 	deltaMult = 100 / deltaRange
@@ -218,9 +204,9 @@ def measureHueDelta(lightness):
 		for f in range(0, freq):
 			perceptualHues.append(h)
 		y = int((d - lowestD) * deltaMult)
-		for n in range(0, 101):
+		for n in range(0, 100):
 			if n == y:
-				c = coloraide.Color('lch-d65', [lightness, chroma, h]).convert('srgb')
+				c = coloraide.Color('oklch', [lightness, chroma, h]).convert('srgb')
 				rgbMap[n, h] = upscaleRGB(c.coords())
 			else:
 				rgbMap[n, h] = [0,0,0]
@@ -243,7 +229,7 @@ def measureHSVhueShift():
 		for lightness in range(10, 91, 5):
 			# c = highestChromaColor(lightness, hue)
 			for chroma in range(5, 136, 5):
-				c = coloraide.Color('lch-d65', [lightness, chroma, hue]).convert('srgb')
+				c = coloraide.Color('oklch', [lightness, chroma, hue]).convert('srgb')
 				if c.in_gamut():
 					HSVhue = c.convert('hsv').h
 					if lowestHSVhue == None or HSVhue < lowestHSVhue:
@@ -278,27 +264,13 @@ for arg in sys.argv[1:]:
 	if arg.upper() == 'NONE':
 		args.append(None)
 	else:
-		args.append(int(arg))
+		args.append(float(arg))
 
 plt.style.use('dark_background')
 
-# >>> coloraide.Color('srgb', [1,0,0]).convert('lch-d65')
-# color(--lch-d65 53.237% 104.55 40 / 1)
-# >>> coloraide.Color('srgb', [0,1,0]).convert('lch-d65')
-# color(--lch-d65 87.736% 119.78 136.01 / 1)
-# >>> coloraide.Color('srgb', [0,0,1]).convert('lch-d65')
-# color(--lch-d65 32.301% 133.81 306.29 / 1)
-# >>> coloraide.Color('srgb', [0,1,1]).convert('lch-d65')
-# color(--lch-d65 91.115% 50.112 196.38 / 1)
-# >>> coloraide.Color('srgb', [1,0,1]).convert('lch-d65')
-# color(--lch-d65 60.323% 115.55 328.23 / 1)
-# >>> coloraide.Color('srgb', [1,1,0]).convert('lch-d65')
-# color(--lch-d65 97.139% 96.912 102.85 / 1)
-
 startDT = datetime.datetime.now()
 if len(args) == 3:
-	aspect = 1
-	rgbMap, extent = findRGBGamut(*args)
+	rgbMap, extent, aspect = findRGBGamut(*args)
 elif len(args) == 1:
 	rgbMap, extent = measureHueDelta(args[0])
 	aspect = 180 / (extent[3] - extent[2])
@@ -312,5 +284,5 @@ fig, ax = plt.subplots()
 im = ax.imshow(rgbMap, interpolation='nearest', cmap=None, origin='lower', extent=extent, aspect=aspect)
 
 mng = plt.get_current_fig_manager()
-mng.window.state('zoomed')
+# mng.window.state('zoomed')
 plt.show()

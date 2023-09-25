@@ -35,27 +35,38 @@ def findGoodLightness(lightness, chroma, hue, lightnessT):
 		d += 1
 	return found
 
-def highestChromaColor(lightness, hue):
-	for chroma in range(maxChroma, 0, -1):
+def highestChromaColor(lightness, hue, stepStop=2):
+	stepStop = 1 / (10 ** stepStop)
+	chromaStep = 10
+	if maxChroma < 10:
+		chromaStep = 1
+	chroma = maxChroma
+	iteration = 0
+	while iteration < 45:
 		c = lch_to_rgb(lightness, chroma, hue)
 		if not c is None:
-			if chroma < maxChroma:
-				decaChroma = chroma + 0.9
-				while decaChroma >= chroma:
-					dc = lch_to_rgb(lightness, decaChroma, hue)
-					if not dc is None:
-						centiChroma = decaChroma + 0.09
-						while centiChroma >= decaChroma:
-							cc = lch_to_rgb(lightness, centiChroma, hue)
-							if not cc is None:
-								return cc
-							centiChroma -= 0.01
-					decaChroma -= 0.1
-			else:
+			if chromaStep == stepStop or maxChroma == 0:
 				return c
+			else:
+				chroma += chromaStep
+				chromaStep /= 10
+				chroma -= chromaStep
+		chroma = max(0, chroma - chromaStep)
+		iteration += 1
+
+def boundedLightnessHighestChroma(hue, minL=1, maxL=100):
+	highestChroma = 0
+	highestColor = None
+	for l in range(minL, maxL):
+		c = highestChromaColor(l, hue)
+		chroma = c.convert('lch-d65').chroma
+		if chroma > highestChroma:
+			highestChroma = chroma
+			highestColor = c
+	return highestColor
 
 def findEquidistantHues(possibles, continuities, wantedNumber):
-	e = 49
+	e = 50
 	firstHue = continuities[0][0]
 	lastHue = firstHue - 1
 	if lastHue < 0:
@@ -88,8 +99,10 @@ def findEquidistantHues(possibles, continuities, wantedNumber):
 				if hue == lastHue:
 					done = True
 					break
-		# print(iterations, e, len(colors), wantedNumber)
+		# print(iterations, e, eStep, len(colors), wantedNumber)
 		if len(colors) < wantedNumber:
+			if e == eStep:
+				eStep /= 10
 			e -= eStep
 		elif len(colors) == wantedNumber:
 			if goodColors == None or e > goodE:
@@ -99,7 +112,7 @@ def findEquidistantHues(possibles, continuities, wantedNumber):
 				print(iterations, "found deltae interval:", '{:.2f}'.format(e))
 				return goodColors
 			e += eStep
-			eStep = eStep / 10
+			eStep /= 10
 			e -= eStep
 		elif len(colors) > wantedNumber:
 			if eStep <= 0.01 and not goodColors is None:
@@ -152,7 +165,9 @@ def generatePalette(**args):
 	hue = args.get('hue')
 	wantedNumber = args.get('wantedNumber')
 	minHueDist = args.get('minHueDist')
-	lightnessT = args.get('lightnessWidth')
+	lightnessT = args.get('lightnessWidth') or 0
+	lightnessMin = args.get('lightnessMin') or 1
+	lightnessMax = args.get('lightnessMax') or 100
 	hues = args.get('hues')
 	if not hues is None:
 		huesPalette = palettes.get(hues)
@@ -161,7 +176,10 @@ def generatePalette(**args):
 			for colorHex in huesPalette.get('palette'):
 				h = coloraide.Color(colorHex).convert('lch-d65').h
 				if chroma == None:
-					c = highestChromaColor(lightness, h).convert('lch-d65')
+					if lightness == None:
+						c = boundedLightnessHighestChroma(h, lightnessMin, lightnessMax).convert('lch-d65')
+					else:
+						c = highestChromaColor(lightness, h).convert('lch-d65')
 				else:
 					c = findGoodLightness(lightness, chroma, h, lightnessT)
 				hx = c.convert('srgb').to_string(hex=True)
@@ -179,7 +197,10 @@ def generatePalette(**args):
 	prevPossible = True
 	for hue in range(361):
 		if chroma == None:
-			c = highestChromaColor(lightness, hue).convert('lch-d65')
+			if lightness == None:
+				c = boundedLightnessHighestChroma(hue, lightnessMin, lightnessMax).convert('lch-d65')
+			else:	
+				c = highestChromaColor(lightness, hue).convert('lch-d65')
 		else:
 			c = findGoodLightness(lightness, chroma, hue, lightnessT)
 		if c:
@@ -238,6 +259,10 @@ def assignColors(palettes):
 		palette = paletteDef.get('palette')
 		if palette:
 			pi = 0
+			print(palette)
+			pr = palette
+			pr.reverse()
+			print(pr)
 			for g in paletteGroups:
 				print(pi, palette[pi])
 				if type(g) == dict:
@@ -296,14 +321,18 @@ for paletteName in palettes.keys():
 	paletteDef = palettes.get(paletteName)
 	palette = paletteDef.get('palette')
 	if type(palette) == dict:
-		if palette.get('minHueDist') == None and palette.get('minDist') == None:
+		if palette.get('minHueDist') == None and palette.get('minDist') == None and palette.get('wantedNumber') == None:
 			palette['wantedNumber'] = len(paletteDef['groups'])
 		if palette.get('hue') == None:
 			palettes[paletteName]['palette'] = generatePalette(**palette)
 		else:
 			palettes[paletteName]['palette'] = generateLinearPalette(**palette)
 
-if not configuration is None:
+try:
+    configuration
+except NameError:
+    print("no theme configuration")
+else:
 	if configuration.get('type') == 'json':
 		scheme = assignJsonColors(palettes)
 		scheme['name'] = configuration.get('name')
@@ -322,11 +351,14 @@ if not configuration is None:
 		settings = json.load(fp)
 		fp.close()
 		schemes = settings.get('schemes')
+		replaced = False
 		for si in range(len(schemes)):
 			scheme = schemes[si]
 			name = scheme.get('name')
 			if name == configuration.get('name'):
 				schemes[si] = newScheme
+		if replaced == False:
+			schemes.append(newScheme)
 		fp = open(settingsPath, 'w')
 		json.dump(settings, fp, sort_keys=True, indent=4, separators=(',', ': '))
 		fp.close()

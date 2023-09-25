@@ -15,16 +15,16 @@ palettes = {
 		'palette' : {'chroma':0, 'hue':0, 'xMin':0, 'xMax':100},
 		'groups' : [
 			['black'],
-			['background', 'brightBlack'],
-			['selectionBackground'],
-			[],
-			['foreground', 'cursorColor'],
+			['background'],
+			['selectionBackground', 'brightBlack'],
 			['white'],
+			['foreground', 'cursorColor'],
 			['brightWhite'],
+			[],
 		],
 	},
 	'colors' : {
-		'palette' : {'lightness':65, 'startHue':40},
+		'palette' : {'lightness':40, 'startHue':40},
 		'groups' : [
 			['red'],
 			['yellow'],
@@ -35,7 +35,7 @@ palettes = {
 		]
 	},
 	'brightcolors' : {
-		'palette' : {'lightness':80, 'hues':'colors'},
+		'palette' : {'lightness':70, 'hues':'colors'},
 		'groups' : [
 			['brightRed'],
 			['brightYellow'],
