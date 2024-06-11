@@ -1,6 +1,5 @@
 import sys
 import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import datetime
 import os
@@ -312,5 +311,4 @@ fig, ax = plt.subplots()
 im = ax.imshow(rgbMap, interpolation='nearest', cmap=None, origin='lower', extent=extent, aspect=aspect)
 
 mng = plt.get_current_fig_manager()
-mng.window.state('zoomed')
 plt.show()

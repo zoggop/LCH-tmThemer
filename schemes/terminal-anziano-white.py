@@ -6,25 +6,25 @@
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 
 configuration = {
-	'name' : 'Terminal Anziano Dark',
-	'type' : 'Windows Terminal',
+	'name' : 'Terminal Anziano Light',
+	'type' : 'Windows Terminal', # for Windows Terminal
 }
 
 palettes = {
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'xMin':0, 'xMax':100},
+		'palette' : {'chroma':0, 'hue':0, 'xMin':0, 'xMax':1.0},
 		'groups' : [
 			['black'],
-			['background'],
-			['selectionBackground', 'brightBlack'],
-			['white'],
-			['foreground', 'cursorColor'],
-			['brightWhite'],
 			[],
+			['foreground', 'cursorColor'],
+			['brightBlack', 'selectionBackground'],
+			['white'],
+			['brightWhite'],
+			['background'],
 		],
 	},
 	'colors' : {
-		'palette' : {'lightness':40, 'startHue':40},
+		'palette' : {'lightness':0.55, 'startHue':30},
 		'groups' : [
 			['red'],
 			['yellow'],
@@ -35,7 +35,7 @@ palettes = {
 		]
 	},
 	'brightcolors' : {
-		'palette' : {'lightness':70, 'hues':'colors'},
+		'palette' : {'lightness':0.8, 'hues':'colors'},
 		'groups' : [
 			['brightRed'],
 			['brightYellow'],

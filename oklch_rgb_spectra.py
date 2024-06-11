@@ -214,7 +214,7 @@ def measureHueDelta(lightness):
 	lstring = str(lightness)
 	if doAvg:
 		lstring = 'avg'
-	with open(os.path.expanduser('~/.lch_rgb/perceptual_hues-l{}.py'.format(lstring)), "w") as fp:
+	with open(os.path.expanduser('~/.oklch_rgb/perceptual_hues-l{}.py'.format(lstring)), "w") as fp:
 		fp.write(str(perceptualHues))
 	return rgbMap, extent
 
@@ -259,10 +259,37 @@ def measureHSVhueShift():
 		h = h + 1
 	return rgbMap, extent
 
+def measureGamutStats(resL=100, resC=100, resH=360):
+	maxL, maxC = 0, 0
+	total, totalL, totalC = 0, 0, 0
+	# rgbMapL = np.zeros([resL, resH, 3], dtype=np.uint8)
+	# rgbMapC = np.zeros([resC, resH, 3], dtype=np.uint8)
+	for pl in range(resL):
+		l = pl / (resL - 1)
+		for pc in range(resC):
+			c = (pc / (resC - 1)) * 0.4
+			for ph in range(resH):
+				h = (ph / (resH - 1)) * 359
+				col = coloraide.Color('oklch', [l, c, h]).convert('srgb')
+				if col.in_gamut():
+					total += 1
+					totalL += l
+					totalC += c
+					if l > maxL:
+						maxL = l
+					if c > maxC:
+						maxC = c
+	avgL = totalL / total
+	avgC = totalC / total
+	print('{}/{} lightness avg/max'.format(avgL, maxL))
+	print('{}/{} chroma avg/max'.format(avgC, maxC))
+
 args = []
 for arg in sys.argv[1:]:
 	if arg.upper() == 'NONE':
 		args.append(None)
+	elif arg.upper() == 'STATS':
+		args.append('stats')
 	else:
 		args.append(float(arg))
 
@@ -272,9 +299,13 @@ startDT = datetime.datetime.now()
 if len(args) == 3:
 	rgbMap, extent, aspect = findRGBGamut(*args)
 elif len(args) == 1:
-	rgbMap, extent = measureHueDelta(args[0])
-	aspect = 180 / (extent[3] - extent[2])
-	print(aspect)
+	if args[0] == 'stats':
+		measureGamutStats()
+		exit()
+	else:
+		rgbMap, extent = measureHueDelta(args[0])
+		aspect = 180 / (extent[3] - extent[2])
+		print(aspect)
 else:
 	aspect = 6
 	rgbMap, extent = measureHSVhueShift()

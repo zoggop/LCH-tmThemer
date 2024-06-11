@@ -12,10 +12,12 @@ configuration = {
 
 palettes = {
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'xMin':0, 'xMax':100},
+		'palette' : {'chroma':0, 'hue':0, 'xMin':0, 'xMax':1.0},
 		'groups' : [
 			['black'],
+			[],
 			['background'],
+			[],
 			['selectionBackground', 'brightBlack'],
 			['white'],
 			['foreground', 'cursorColor'],
@@ -24,7 +26,7 @@ palettes = {
 		],
 	},
 	'colors' : {
-		'palette' : {'lightness':40, 'startHue':40},
+		'palette' : {'lightness':0.4, 'startHue':30},
 		'groups' : [
 			['red'],
 			['yellow'],
@@ -35,7 +37,7 @@ palettes = {
 		]
 	},
 	'brightcolors' : {
-		'palette' : {'lightness':70, 'hues':'colors'},
+		'palette' : {'lightness':0.7, 'hues':'colors'},
 		'groups' : [
 			['brightRed'],
 			['brightYellow'],
