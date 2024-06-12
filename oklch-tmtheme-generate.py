@@ -59,10 +59,10 @@ def highestChromaColor(lightness, hue, stepStop=4):
 def boundedLightnessHighestChroma(hue, minL=0.01, maxL=1.00):
 	highestChroma = 0
 	highestColor = None
-	for lhundred in range(minL*100, maxL*100):
+	for lhundred in range(int(minL*100), int(maxL*100)):
 		l = lhundred / 100
 		c = highestChromaColor(l, hue)
-		chroma = c.convert('oklch').chroma
+		chroma = c.convert('oklch')['c']
 		if chroma > highestChroma:
 			highestChroma = chroma
 			highestColor = c
@@ -91,8 +91,10 @@ def findEquidistantHues(possibles, continuities, wantedNumber):
 				c = possibles.get(hue)
 				# print(hue, c)
 				if c != None:
-					deltaELast = colors[-1].delta_e(c, method='2000')
-					deltaEFirst = colors[0].delta_e(c, method='2000')
+					# deltaELast = colors[-1].delta_e(c, method='2000')
+					# deltaEFirst = colors[0].delta_e(c, method='2000')
+					deltaELast = angleDist(colors[-1]['h'], c['h'])
+					deltaEFirst = angleDist(colors[0]['h'], c['h'])
 					if min(deltaELast, deltaEFirst) >= e:
 						colors.append(c)
 						break
@@ -174,22 +176,28 @@ def generatePalette(**args):
 	lightnessMax = args.get('lightnessMax') or 1.00
 	hues = args.get('hues')
 	if not hues is None:
-		huesPalette = palettes.get(hues)
-		if not huesPalette is None:
-			colors = []
-			for colorHex in huesPalette.get('palette'):
-				h = coloraide.Color(colorHex).convert('oklch')['h']
-				if chroma == None:
-					if lightness == None:
-						c = boundedLightnessHighestChroma(h, lightnessMin, lightnessMax).convert('oklch')
-					else:
-						c = highestChromaColor(lightness, h).convert('oklch')
+		hueList = []
+		if isinstance(hues, list):
+			hueList = hues
+		else:
+			huesPalette = palettes.get(hues)
+			if not huesPalette is None:
+				for colorHex in huesPalette.get('palette'):
+					h = coloraide.Color(colorHex).convert('oklch')['h']
+					hueList.append(h)
+		colors = []
+		for h in hueList:
+			if chroma == None:
+				if lightness == None:
+					c = boundedLightnessHighestChroma(h, lightnessMin, lightnessMax).convert('oklch')
 				else:
-					c = findGoodLightness(lightness, chroma, h, lightnessT)
-				hx = c.convert('srgb').to_string(hex=True)
-				print(c['l'], c['c'], c['h'], "\t", hx)
-				colors.append(hx)
-			return colors
+					c = highestChromaColor(lightness, h).convert('oklch')
+			else:
+				c = findGoodLightness(lightness, chroma, h, lightnessT)
+			hx = c.convert('srgb').to_string(hex=True)
+			print(c['l'], c['c'], c['h'], "\t", hx)
+			colors.append(hx)
+		return colors
 	startHue = args.get('startHue') or 0
 	endHue = startHue - 1
 	if endHue == -1:

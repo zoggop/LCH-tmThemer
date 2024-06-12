@@ -6,26 +6,27 @@
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 
 configuration = {
-	'name' : 'Terminal Blasphemia Dark',
+	'name' : 'Pink Dark',
 	'type' : 'Windows Terminal',
 }
 
 palettes = {
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'xMin':0, 'xMax':1.0},
+		'palette' : {'chroma':0.1, 'hue':0, 'xMin':0, 'xMax':1.0},
 		'groups' : [
-			['background', 'black'],
+			['black'],
 			[],
-			['selectionBackground'],
-			['brightBlack'],
+			['background'],
 			[],
-			['foreground', 'white'],
+			['selectionBackground', 'brightBlack'],
+			['white'],
+			['foreground', 'cursorColor'],
+			['brightWhite'],
 			[],
-			['brightWhite', 'cursorColor'],
 		],
 	},
 	'colors' : {
-		'palette' : {'lightness':0.5, 'startHue':30},
+		'palette' : {'lightness':0.4, 'startHue':30},
 		'groups' : [
 			['red'],
 			['yellow'],
@@ -36,7 +37,7 @@ palettes = {
 		]
 	},
 	'brightcolors' : {
-		'palette' : {'hues':'colors', 'lightnessMin':0.62, 'lightnessMax':0.88},
+		'palette' : {'lightness':0.7, 'hues':'colors'},
 		'groups' : [
 			['brightRed'],
 			['brightYellow'],
