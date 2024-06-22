@@ -11,7 +11,8 @@ defaultDirectory = '~/AppData/Roaming/Sublime Text 3/Packages/User/'
 maxChroma = 0.4
 
 def angleDist(a, b):
-	return abs(((b - a) + 180) % 360 - 180)
+	# return abs(((b - a) + 180) % 360 - 180)
+	return abs(180 - abs(abs(a - b) - 180))
 
 def lch_to_rgb(lightness, chroma, hue):
 	c = coloraide.Color('oklch', [lightness, chroma, hue]).convert('srgb')
@@ -69,7 +70,7 @@ def boundedLightnessHighestChroma(hue, minL=0.01, maxL=1.00):
 	return highestColor
 
 def findEquidistantHues(possibles, continuities, wantedNumber):
-	e = 50
+	e = 100
 	firstHue = continuities[0][0]
 	lastHue = firstHue - 1
 	if lastHue < 0:
@@ -95,6 +96,7 @@ def findEquidistantHues(possibles, continuities, wantedNumber):
 					# deltaEFirst = colors[0].delta_e(c, method='2000')
 					deltaELast = angleDist(colors[-1]['h'], c['h'])
 					deltaEFirst = angleDist(colors[0]['h'], c['h'])
+					# print(deltaELast, deltaELast)
 					if min(deltaELast, deltaEFirst) >= e:
 						colors.append(c)
 						break
@@ -333,6 +335,7 @@ for paletteName in palettes.keys():
 	paletteDef = palettes.get(paletteName)
 	palette = paletteDef.get('palette')
 	if type(palette) == dict:
+		print(paletteName)
 		if palette.get('minHueDist') == None and palette.get('minDist') == None and palette.get('wantedNumber') == None:
 			palette['wantedNumber'] = len(paletteDef['groups'])
 		if palette.get('hue') == None:

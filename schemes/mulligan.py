@@ -17,7 +17,7 @@ palettes = {
 		],
 	},
 	'background' : {
-		'palette' : {'lightness':0.35, 'chroma':0.1, 'lightnessWidth':0},
+		'palette' : {'lightness':0.35, 'chroma':0.1},
 		'groups' : [
 			[],# ['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
 			['meta.arrayindex, meta.item-access.arguments'],
@@ -25,20 +25,18 @@ palettes = {
 		]
 	},
 	'foreground' : {
-		'palette' : {'lightness':0.70, 'chroma':0.14, 'lightnessWidth':0},
+		'palette' : {'lightness':0.70, 'chroma':0.144},
 		'groups' : [
-			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'meta.separator', 'keyword.declaration'],
-			{'constant':''},
-			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'markup.heading':''},
-			{'variable.parameter':'', 'invalid.deprecated':'background'},
-			['string', 'markup.italic', 'markup.bold', 'markup.strike'],
-			['meta.function', 'variable.function', 'entity.other.attribute-name'], # 'meta.functioncall, meta.function-call'
-			# [],
-			# ['variable, support.variable, meta.qualified-name, support.other.variable'],
+			['string', 'markup.italic', 'markup.bold', 'markup.strike'], #yellow
+			['meta.function', 'variable.function', 'entity.other.attribute-name'], # green
+			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'meta.separator', 'keyword.declaration'], # sky blue
+			{'constant':''}, # blurple
+			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'markup.heading':''}, # pink
+			{'variable.parameter':'', 'invalid.deprecated':'background'}, # orange
 		]
 	},
 	'comment' : {
-		'palette' : {'lightness':0.60, 'chroma':0.05, 'lightnessWidth':0},
+		'palette' : {'lightness':0.60, 'chroma':0.05},
 		'groups' : [
 			[],
 			{'comment':'foreground', 'findHighlight':''},

@@ -17,17 +17,17 @@ palettes = {
 		],
 	},
 	'background' : {
-		'palette' : {'lightness':0.95, 'chroma':0.069, 'lightnessWidth':0},
+		'palette' : {'lightness':0.95, 'chroma':0.069},
 		'groups' : [
 			{'string':'', 'invalid':'foreground', 'invalid.deprecated':'foreground', 'markup.deleted':'', 'meta.separator':''},
 			['entity.other.inherited-class', 'variable.function', 'entity.other.attribute-name'],
-			['meta.arrayindex, meta.item-access.arguments', 'markup.inserted'],
+			['meta.brackets', 'meta.arrayindex', 'meta.item-access.arguments', 'markup.inserted'],
 			# ['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'markup.italic', 'markup.bold'],
 		]
 	},
 	'foreground' : {
-		# 'palette' : {'lightness':33, 'chroma':131, 'lightnessWidth':0},
-		'palette' : ['#0000ff', '#a40000'],
+		# 'palette' : {'hues':[264, 29], 'lightness':0.452},
+		'palette' : ['#0000ff', '#bc0000'],
 		'groups' : [
 			# ['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'markup.italic', 'markup.bold'],
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'markup.heading':''},
@@ -38,14 +38,9 @@ palettes = {
 		]
 	},
 	'comment' : {
-		'palette' : {'lightness':0.50, 'chroma':0.07, 'lightnessWidth':0},
+		'palette' : {'hues':[60], 'chroma':0.1, 'lightness':0.45},
 		'groups' : [
-			[],
 			{'comment':'foreground', 'findHighlight':''},
-			[],
-			[],
-			[],
-			[],
 		]
 	}
 }

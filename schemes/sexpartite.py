@@ -6,40 +6,37 @@
 # palette can be a list of hex strings (a static palette), or a list of parameters to pass to generatePalette
 palettes = {
 	'grayscale' : {
-		'palette' : {'chroma':0, 'hue':0, 'tolerance':1000, 'xMin':0, 'xMax':75, 'gamutCheck':False},
+		'palette' : {'chroma':0, 'hue':0, 'xMin':0.216, 'xMax':0.722},
 		'groups' : [
 			['background', 'findHighlightForeGround', 'selectionBorder'],
 			['selection', 'lineHighlight'],
 			['stackGuide', 'invisibles'],
 			['guide'],
 			['activeGuide'],
-			['foreground'],
-			['caret'],
+			['foreground', 'caret'],
 		],
 	},
 	'background' : {
-		'palette' : {'lightness':10, 'chroma':30, 'tolerance':5, 'lightnessWidth':0},
+		'palette' : {'lightness':0.35, 'chroma':0.1},
 		'groups' : [
-			{'invalid':'foreground', 'invalid.deprecated':'foreground'},
-			['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
+			[],# ['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
 			['meta.arrayindex, meta.item-access.arguments'],
+			{'invalid':'foreground', 'invalid.deprecated':'foreground'},
 		]
 	},
 	'foreground' : {
-		'palette' : {'lightness':60, 'chroma':39, 'tolerance':5, 'lightnessWidth':0},
+		'palette' : {'lightness':0.722, 'chroma':0.14, 'hues':[96, 151, 233, 288, 343, 38]},
 		'groups' : [
-			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background'},
-			{'variable.parameter':'', 'invalid.deprecated':'background'},
-			{'string':''},
-			['meta.function', 'variable.function', 'entity.other.attribute-name'], # 'meta.functioncall, meta.function-call'
-			[],
-			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type'],
-			{'constant':''},
-			# ['variable, support.variable, meta.qualified-name, support.other.variable'],
+			['string', 'markup.italic', 'markup.bold', 'markup.strike'], #yellow
+			['meta.function', 'variable.function', 'entity.other.attribute-name'], # green
+			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'meta.separator', 'keyword.declaration'], # sky blue
+			{'constant':''}, # blurple
+			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'markup.heading':''}, # pink
+			{'variable.parameter':'', 'invalid.deprecated':'background'}, # orange
 		]
 	},
 	'comment' : {
-		'palette' : {'lightness':50, 'chroma':15, 'tolerance':5, 'lightnessWidth':0},
+		'palette' : {'lightness':0.722, 'chroma':0.07},
 		'groups' : [
 			[],
 			{'comment':'foreground', 'findHighlight':''},
@@ -60,6 +57,9 @@ fontStyles = {
 	'entity.name.class' : 'underline',
 	'invalid' : 'bold',
 	'invalid.deprecated' : 'bold',
+	'markup.heading' : 'underline',
+	'markup.italic' : 'italic',
+	'markup.bold' : 'bold',
 }
 
 ### END CONFIGURATION ###
