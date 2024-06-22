@@ -52,7 +52,7 @@ fontStyles = {
 	'keyword.declaration' : 'italic',
 	'comment' : 'italic',
 	'entity.other.inherited-class' : 'italic underline',
-	'entity.name.class' : 'underline',
+	'entity.name.class' : 'bold underline',
 	'entity.name' : 'bold',
 	'invalid' : 'bold',
 	'invalid.deprecated' : 'bold',
