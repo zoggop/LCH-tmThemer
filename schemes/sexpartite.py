@@ -8,7 +8,7 @@ palettes = {
 	'grayscale' : {
 		'palette' : {'chroma':0, 'hue':0, 'xMin':0.216, 'xMax':0.722},
 		'groups' : [
-			['background', 'findHighlightForeGround', 'selectionBorder'],
+			{'background':'', 'findHighlightForeGround':'', 'selectionBorder':'', 'invalid':'foreground', 'invalid.deprecated':'foreground'},
 			['selection', 'lineHighlight'],
 			['stackGuide', 'invisibles'],
 			['guide'],
@@ -20,8 +20,8 @@ palettes = {
 		'palette' : {'lightness':0.722, 'chroma':0.1476},
 		# 'palette' : {'lightness':0.722, 'chroma':0.14, 'hues':[96, 151, 233, 288, 343, 38]},
 		'groups' : [
-			['string', 'markup.italic', 'markup.bold', 'markup.strike'], #yellow
-			['meta.function', 'variable.function', 'entity.other.attribute-name'], # green
+			['string', 'markup.italic', 'markup.bold', 'markup.strike', 'findHighlight'], #yellow
+			['meta.function', 'variable.function', 'entity.other.attribute-name', 'entity.name', 'entity.name.class'], # green
 			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'meta.separator', 'keyword.declaration'], # sky blue
 			{'constant':''}, # lilac
 			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'markup.heading':'', 'invalid.deprecated':'background'}, # pink
@@ -29,20 +29,17 @@ palettes = {
 		]
 	},
 	'background' : {
-		'palette' : {'lightness':0.216, 'chroma':0.036, 'hues':'foreground'},
+		# 'palette' : {'lightness':0.216, 'chroma':0.0357, 'hues':'foreground'},
+		'palette' : ['#00005A', '#390000'],
 		'groups' : [
-			[],
-			['meta.arrayindex, meta.item-access.arguments'],
-			[],
-			[],
-			{'invalid':'foreground'},
-			{'invalid.deprecated':'foreground'},
+			[], # ['meta.arrayindex', 'meta.brackets'],
+			[], # ['meta.item-access.arguments', 'meta.function-call.arguments'],
 		]
 	},
 	'comment' : {
 		'palette' : {'lightness':0.722, 'chroma':0.07, 'hues':[64]},
 		'groups' : [
-			{'comment':'foreground', 'findHighlight':''},
+			{'comment':'foreground'},
 		]
 	}
 }
@@ -52,8 +49,11 @@ fontStyles = {
 	'support.type' : 'italic',
 	'support.class' : 'italic',
 	'storage.type' : 'italic',
+	'keyword.declaration' : 'italic',
+	'comment' : 'italic',
 	'entity.other.inherited-class' : 'italic underline',
 	'entity.name.class' : 'underline',
+	'entity.name' : 'bold',
 	'invalid' : 'bold',
 	'invalid.deprecated' : 'bold',
 	'markup.heading' : 'underline',
