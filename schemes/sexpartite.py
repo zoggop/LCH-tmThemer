@@ -16,34 +16,33 @@ palettes = {
 			['foreground', 'caret'],
 		],
 	},
-	'background' : {
-		'palette' : {'lightness':0.35, 'chroma':0.1},
-		'groups' : [
-			[],# ['entity.name.class', 'entity.name.function', 'entity.other.inherited-class'],
-			['meta.arrayindex, meta.item-access.arguments'],
-			{'invalid':'foreground', 'invalid.deprecated':'foreground'},
-		]
-	},
 	'foreground' : {
-		'palette' : {'lightness':0.722, 'chroma':0.14, 'hues':[96, 151, 233, 288, 343, 38]},
+		'palette' : {'lightness':0.722, 'chroma':0.1476},
+		# 'palette' : {'lightness':0.722, 'chroma':0.14, 'hues':[96, 151, 233, 288, 343, 38]},
 		'groups' : [
 			['string', 'markup.italic', 'markup.bold', 'markup.strike'], #yellow
 			['meta.function', 'variable.function', 'entity.other.attribute-name'], # green
 			['storage.type', 'support.function', 'support.constant', 'support.class', 'support.type', 'meta.separator', 'keyword.declaration'], # sky blue
-			{'constant':''}, # blurple
-			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'invalid':'background', 'markup.heading':''}, # pink
-			{'variable.parameter':'', 'invalid.deprecated':'background'}, # orange
+			{'constant':''}, # lilac
+			{'keyword':'', 'storage':'', 'entity.name.tag':'', 'markup.heading':'', 'invalid.deprecated':'background'}, # pink
+			{'variable.parameter':'', 'invalid':'background'}, # orange
+		]
+	},
+	'background' : {
+		'palette' : {'lightness':0.216, 'chroma':0.036, 'hues':'foreground'},
+		'groups' : [
+			[],
+			['meta.arrayindex, meta.item-access.arguments'],
+			[],
+			[],
+			{'invalid':'foreground'},
+			{'invalid.deprecated':'foreground'},
 		]
 	},
 	'comment' : {
-		'palette' : {'lightness':0.722, 'chroma':0.07},
+		'palette' : {'lightness':0.722, 'chroma':0.07, 'hues':[64]},
 		'groups' : [
-			[],
 			{'comment':'foreground', 'findHighlight':''},
-			[],
-			[],
-			[],
-			[],
 		]
 	}
 }
