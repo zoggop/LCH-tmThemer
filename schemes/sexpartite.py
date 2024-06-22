@@ -37,7 +37,7 @@ palettes = {
 		]
 	},
 	'comment' : {
-		'palette' : {'lightness':0.722, 'chroma':0.07, 'hues':[64]},
+		'palette' : {'lightness':0.622, 'chroma':0.0492, 'hues':[64]},
 		'groups' : [
 			{'comment':'foreground'},
 		]
